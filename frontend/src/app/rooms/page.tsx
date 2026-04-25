@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+
 export default function RoomsPage() {
   return (
     <main className="bg-brand-white text-brand-blue">
@@ -52,7 +54,7 @@ export default function RoomsPage() {
 }
 
 function GoldRoomCard() {
-  const [currentIndex, setCurrentIndex] = require('react').useState(4);
+  const [currentIndex, setCurrentIndex] = useState(4);
   const totalImages = 18;
 
   const handlePrev = () => {
@@ -129,7 +131,7 @@ function GoldRoomCard() {
 }
 
 function BlueRoomCard() {
-  const [currentIndex, setCurrentIndex] = require('react').useState(7);
+  const [currentIndex, setCurrentIndex] = useState(7);
   const totalImages = 16;
 
   const handlePrev = () => {
@@ -206,7 +208,7 @@ function BlueRoomCard() {
 }
 
 function RooftopCard() {
-  const [currentIndex, setCurrentIndex] = require('react').useState(6);
+  const [currentIndex, setCurrentIndex] = useState(6);
   const totalImages = 17;
 
   const handlePrev = () => {
