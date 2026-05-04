@@ -205,7 +205,7 @@ export default function Home() {
                       <path fillRule="evenodd" d="M12 2C8.1 2 5 5.1 5 9c0 4.9 5.1 11.4 6.3 12.9.4.4 1 .4 1.4 0C13.9 20.4 19 13.9 19 9c0-3.9-3.1-7-7-7zm0 9.5c-1.4 0-2.5-1.1-2.5-2.5S10.6 6.5 12 6.5s2.5 1.1 2.5 2.5S13.4 11.5 12 11.5z" clipRule="evenodd" />
                     </svg>
                   </span>
-                <a href="https://maps.app.goo.gl/CpMXPRr68dPTqos7A" target="_blank" rel="noopener noreferrer" className="hover:underline transition hover:text-brand-blue">
+                <a href="https://maps.app.goo.gl/msZvzjPS2H6DsXP68?g_st=ic" target="_blank" rel="noopener noreferrer" className="hover:underline transition hover:text-brand-blue">
                   Salaban, Tagaytay-Amadeo Road, Amadeo, Cavite
                 </a>
                 </div>
