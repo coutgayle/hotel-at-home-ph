@@ -1,6 +1,5 @@
 ﻿'use client';
-
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 // --- MOCK DATA ---
@@ -319,7 +318,7 @@ function BookNowContent() {
               <p className="text-3xl font-bold text-brand-blue tracking-widest">{confirmationCode}</p>
             </div>
             
-            <p className="text-sm text-brand-blue/70">Please save this code. You can use it in the "View Booking" feature to check your reservation status.</p>
+            <p className="text-sm text-brand-blue/70">Please save this code. You can use it in the &quot;View Booking&quot; feature to check your reservation status.</p>
             
             <div className="mt-10">
               <a href="/" className="inline-flex rounded-full bg-brand-blue px-8 py-3 text-sm font-semibold text-white transition hover:bg-[#001a72]">Return to Home</a>
