@@ -188,10 +188,11 @@ export default function Home() {
               <div className="h-80 w-full overflow-hidden bg-slate-200">
                 <iframe
                   title="Amadeo Location"
-                src="https://maps.google.com/maps?q=Salaban%2C%20Tagaytay-Amadeo%20Road%2C%20Amadeo%2C%20Cavite&output=embed"
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d30953.230703290206!2d120.89868907910157!3d14.127048999999998!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x33bd790064203323%3A0x3043972d3b983203!2sHotel%20%40%20Home!5e0!3m2!1sen!2sph!4v1777886601332!5m2!1sen!2sph"
                   className="h-full w-full border-0"
                   allowFullScreen={true}
                   loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
                 />
               </div>
               <div className="p-8">
