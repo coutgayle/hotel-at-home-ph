@@ -24,6 +24,7 @@ export default function RoomsPage() {
 
         <div className="mx-auto mt-10 max-w-7xl grid gap-8 lg:grid-cols-2">
           <RooftopCard />
+          <ReceptionCard />
         </div>
 
         <div className="mx-auto mt-16 rounded-[32px] bg-[#f3f6fb] px-8 py-12 text-center shadow-sm shadow-brand-blue/10 md:px-12">
@@ -54,8 +55,8 @@ export default function RoomsPage() {
 }
 
 function GoldRoomCard() {
-  const [currentIndex, setCurrentIndex] = useState(4);
-  const totalImages = 18;
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const totalImages = 15;
 
   const handlePrev = () => {
     setCurrentIndex((prev) => (prev === 0 ? totalImages - 1 : prev - 1));
@@ -75,7 +76,7 @@ function GoldRoomCard() {
           className="h-full w-full object-cover"
         />
         <span className="absolute right-4 top-4 rounded-full bg-accent px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-brand-blue shadow-sm">
-          Premium Suite
+          Gold Room
         </span>
         <button
           onClick={handlePrev}
@@ -101,20 +102,25 @@ function GoldRoomCard() {
       </div>
       <div className="space-y-6 p-8">
         <div>
-          <h2 className="text-3xl font-semibold text-brand-blue">Gold Room</h2>
-          <p className="mt-2 text-sm uppercase tracking-[0.24em] text-brand-blue/60">Price: ₱5,500/night (Weekdays) | ₱6,000 (Weekends)</p>
+          <p className="text-sm font-bold uppercase tracking-[0.24em] text-brand-blue/60">₱5,500/night (Weekdays) • ₱6,000 (Weekends)</p>
         </div>
         <div className="grid gap-2 text-sm text-brand-blue/70 sm:grid-cols-2">
           <div className="space-y-2">
+            <p>50 SQM</p>
+            <p>Ideal for 2 guests</p>
             <p>1 King size bed</p>
             <p>1 Bathroom</p>
-            <p>75 SQM</p>
-            <p>Ideal for 2-3 guests</p>
-            <p>Air Conditioning and WiFi</p>
+            <p>4-Seater Dining Table</p>
+            <p>Kitchen cabinet with sink</p>
+            <p>Personal Ref</p>
           </div>
           <div className="space-y-2">
+            <p>Air conditioning and WiFi</p>
+            <p>55&quot; Smart TV with Bluetooth Speaker</p>
+            <p>Electric Kettle</p>
+            <p>Toiletries, towels, and bathrobe</p>
             <p>Contemporary artwork</p>
-            <p>Parking Space</p>
+            <p>Parking space</p>
           </div>
         </div>
         <div className="flex items-center justify-between gap-4 pt-4 border-t border-brand-blue/10">
@@ -131,8 +137,8 @@ function GoldRoomCard() {
 }
 
 function BlueRoomCard() {
-  const [currentIndex, setCurrentIndex] = useState(7);
-  const totalImages = 16;
+  const [currentIndex, setCurrentIndex] = useState(2);
+  const totalImages = 13;
 
   const handlePrev = () => {
     setCurrentIndex((prev) => (prev === 0 ? totalImages - 1 : prev - 1));
@@ -152,7 +158,7 @@ function BlueRoomCard() {
           className="h-full w-full object-cover"
         />
         <span className="absolute right-4 top-4 rounded-full bg-accent px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-brand-blue shadow-sm">
-          Deluxe Suite
+          Blue Room
         </span>
         <button
           onClick={handlePrev}
@@ -178,20 +184,25 @@ function BlueRoomCard() {
       </div>
       <div className="space-y-6 p-8">
         <div>
-          <h2 className="text-3xl font-semibold text-brand-blue">Blue Room</h2>
-          <p className="mt-2 text-sm uppercase tracking-[0.24em] text-brand-blue/60">Price: ₱5,500/night (Weekdays) | ₱6,000 (Weekends)</p>
+          <p className="text-sm font-bold uppercase tracking-[0.24em] text-brand-blue/60">₱5,500/night (Weekdays) • ₱6,000 (Weekends)</p>
         </div>
         <div className="grid gap-2 text-sm text-brand-blue/70 sm:grid-cols-2">
           <div className="space-y-2">
+            <p>50 SQM</p>
+            <p>Ideal for 4 guests</p>
             <p>2 Queen size beds</p>
             <p>1 Bathroom</p>
-            <p>Air conditioning</p>
-            <p>WiFi</p>
-            <p>Smart TV</p>
+            <p>6-Seater Dining Table</p>
+            <p>Kitchen cabinet with sink</p>
+            <p>Personal Ref</p>
           </div>
           <div className="space-y-2">
-            <p>Contemporary Artwork</p>
-            <p>Ideal for 2-3 guests</p>
+            <p>Air conditioning and WiFi</p>
+            <p>55&quot; Smart TV with DVD speaker</p>
+            <p>Electric Kettle</p>
+            <p>Toiletries, towels, and bathrobe</p>
+            <p>Contemporary artwork</p>
+            <p>Parking space</p>
           </div>
         </div>
         <div className="flex items-center justify-between gap-4 pt-4 border-t border-brand-blue/10">
@@ -208,8 +219,8 @@ function BlueRoomCard() {
 }
 
 function RooftopCard() {
-  const [currentIndex, setCurrentIndex] = useState(6);
-  const totalImages = 17;
+  const [currentIndex, setCurrentIndex] = useState(4);
+  const totalImages = 13;
 
   const handlePrev = () => {
     setCurrentIndex((prev) => (prev === 0 ? totalImages - 1 : prev - 1));
@@ -258,25 +269,51 @@ function RooftopCard() {
           <h2 className="text-3xl font-semibold text-brand-blue">Rooftop Lounge</h2>
         </div>
         <p className="text-brand-blue/70">
-          This 150SQM exclusive space is ideal for 10-15 guests, perfect for hosting late-night hangouts or slow mornings with the cool Amadeo-Tagaytay breeze.
+          This 150SQM exclusive space is ideal for 15-20 guests, perfect for general hangouts or slow mornings with the cool Amadeo-Tagaytay breeze.
         </p>
         <div className="grid gap-2 text-sm text-brand-blue/70 sm:grid-cols-2">
           <div className="space-y-2">
-            <p>Air Conditioning</p>
-            <p>WiFi</p>
-            <p>Smart TV</p>
-          </div>
-          <div className="space-y-2">
-            <p>Outdoor and Indoor seating</p>
+            <p>150 SQM</p>
+            <p>Outdoor and indoor seating</p>
             <p>Bar counter</p>
             <p>Dining table setup</p>
           </div>
+          <div className="space-y-2">
+            <p>Air conditioning and WiFi</p>
+            <p>65&quot; Smart TV with DVD speaker</p>
+            <p>Microphone for Karaoke - available upon request</p>
+            <p>Contemporary artwork</p>
+          </div>
         </div>
-        <div className="pt-4">
-          <button className="w-full rounded-full bg-brand-blue px-6 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-brand-white transition hover:bg-[#001a72]">
+        <div className="flex items-center justify-between gap-4 pt-4 border-t border-brand-blue/10">
+          <a
+            href="/book-now?roomId=3"
+            className="inline-flex min-w-[140px] items-center justify-center rounded-full bg-brand-blue px-6 py-3 text-sm font-semibold text-brand-white transition hover:bg-[#001a72]"
+          >
             Inquire
-          </button>
+          </a>
         </div>
+      </div>
+    </article>
+  );
+}
+
+function ReceptionCard() {
+  return (
+    <article className="overflow-hidden rounded-[32px] border border-brand-blue/10 bg-brand-white shadow-md shadow-brand-blue/5">
+      <div className="relative h-80 overflow-hidden bg-slate-100 flex items-center justify-center">
+        <span className="text-brand-blue/50 font-medium">Images coming soon</span>
+        <span className="absolute right-4 top-4 rounded-full bg-accent px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-brand-blue shadow-sm">
+          Common Area
+        </span>
+      </div>
+      <div className="space-y-6 p-8">
+        <div>
+          <h2 className="text-3xl font-semibold text-brand-blue">Reception Area</h2>
+        </div>
+        <p className="text-brand-blue/70">
+          Information and pictures of our reception area will be added here soon.
+        </p>
       </div>
     </article>
   );

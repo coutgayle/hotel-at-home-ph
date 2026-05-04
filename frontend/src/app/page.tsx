@@ -188,7 +188,7 @@ export default function Home() {
               <div className="h-80 w-full overflow-hidden bg-slate-200">
                 <iframe
                   title="Amadeo Location"
-                  src="https://maps.google.com/maps?q=9895%20Cristano%20M.%20delos%20Reyes%20Avenue%2C%20Salaban%2C%20Amadeo-Tagaytay%20Road%2C%20Cavite&output=embed"
+                src="https://maps.google.com/maps?q=Salaban%2C%20Tagaytay-Amadeo%20Road%2C%20Amadeo%2C%20Cavite&output=embed"
                   className="h-full w-full border-0"
                   allowFullScreen={true}
                   loading="lazy"
@@ -205,7 +205,9 @@ export default function Home() {
                       <path fillRule="evenodd" d="M12 2C8.1 2 5 5.1 5 9c0 4.9 5.1 11.4 6.3 12.9.4.4 1 .4 1.4 0C13.9 20.4 19 13.9 19 9c0-3.9-3.1-7-7-7zm0 9.5c-1.4 0-2.5-1.1-2.5-2.5S10.6 6.5 12 6.5s2.5 1.1 2.5 2.5S13.4 11.5 12 11.5z" clipRule="evenodd" />
                     </svg>
                   </span>
-                  9895 Cristano M. delos Reyes Avenue, Salaban, Amadeo-Tagaytay Road, Cavite
+                <a href="https://maps.app.goo.gl/CpMXPRr68dPTqos7A" target="_blank" rel="noopener noreferrer" className="hover:underline transition hover:text-brand-blue">
+                  Salaban, Tagaytay-Amadeo Road, Amadeo, Cavite
+                </a>
                 </div>
               </div>
             </article>
@@ -239,6 +241,24 @@ export default function Home() {
                     distance: '3.3 km away',
                     description: 'A track for those who are interested in running, walking, biking, and skateboarding.',
                     image: '/nearby/tagaytay-oval.jpg'
+                  },
+                  {
+                    title: "People's Park in the Sky",
+                    distance: '16 km away',
+                    description: 'A historical mountaintop park offering breathtaking panoramic views of Tagaytay and Taal Volcano.',
+                    image: '/nearby/peoples-park.jpg'
+                  },
+                  {
+                    title: 'Puzzle Mansion',
+                    distance: '8.5 km away',
+                    description: 'A unique museum holding a Guinness World Record for its massive collection of jigsaw puzzles.',
+                    image: '/nearby/puzzle-mansion.jpg'
+                  },
+                  {
+                    title: 'Museo Orlina',
+                    distance: '15 km away',
+                    description: 'A contemporary art museum showcasing stunning glass sculptures by renowned artist Ramon Orlina.',
+                    image: '/nearby/museo-orlina.jpg'
                   }
                 ].map((item) => (
                   <article key={item.title} className="overflow-hidden rounded-[28px] border border-brand-blue/10 bg-brand-white shadow-sm">
@@ -252,16 +272,6 @@ export default function Home() {
                     </div>
                   </article>
                 ))}
-              </div>
-
-              <div className="mt-10 flex justify-center">
-                <Link
-                  href="/info"
-                  className="inline-flex items-center gap-2 rounded-full bg-brand-blue px-8 py-3 text-sm font-semibold text-brand-white shadow-sm transition hover:bg-primary-dark"
-                >
-                  View Complete Travel Guide
-                  <span aria-hidden="true">→</span>
-                </Link>
               </div>
             </div>
           </section>

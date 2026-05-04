@@ -34,7 +34,6 @@ const faqs = [
         <strong>Room Amenities</strong><br />
         Basic Toiletries – shampoo, bath gel, toothpaste, toothbrush, vanity kit, shower cap<br />
         Towels, bathrobe, slippers, hair dryer<br />
-        Free 1 bottle of wine<br />
         Personal refrigerator<br />
         Aircon<br />
         Wi-fi<br />
@@ -45,7 +44,7 @@ const faqs = [
         <br />
         <strong>Rooftop Lounge</strong><br />
         Dining area – Indoor and outdoor<br />
-        Alcoholic Drinks – By pre-order upon check in. Outside alcoholic drinks are subject to ₱500 corkage fee per bottle (wine/liquor)<br />
+        Wine and liquor – By pre-order upon check in. Outside alcoholic drinks are subject to ₱500 corkage fee per bottle (wine/liquor)<br />
         65” Smart TV with DVD speaker<br />
         Microphone for Karaoke – by request
       </>
@@ -99,7 +98,7 @@ export default function FAQsPage() {
             </h1>
             <p className="mt-4 text-sm text-brand-blue/70 sm:text-base">
               Find answers to common questions about{' '}
-              <span className="font-script text-brand-yellow">Hotel at Home</span>
+              <span className="font-script text-[1.5em] text-brand-yellow drop-shadow-[2px_2px_2px_rgba(0,0,0,0.15)]">Hotel at Home</span>
             </p>
           </div>
 

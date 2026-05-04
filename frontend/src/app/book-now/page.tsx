@@ -1,928 +1,793 @@
-﻿﻿'use client';
+﻿'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-type Room = {
-  id: string;
-  name: string;
-  price: number;
-  sqm: string;
-  capacity: string;
-  maxGuests: number;
-  image: string;
-  gallery: string[];
-  description: string;
-  amenities: string[];
-};
-
-const getGallery = (folder: string, prefix: string, count: number, frontImage: string) => {
-  const allImages = Array.from({ length: count }, (_, i) => `/img/${folder}/${prefix}${i + 1}.jpg`);
-  return [frontImage, ...allImages.filter((img) => img !== frontImage)];
-};
-
-type BookingData = {
-  room: Room | null;
-  checkIn: string;
-  checkOut: string;
-  guests: number;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  paymentMethod: 'gcash' | 'bank' | 'cash' | '';
-};
-
-const rooms: Room[] = [
-  {
-    id: '1',
-    name: 'Gold Room',
-    price: 5500,
-    sqm: '75 SQM',
-    capacity: '2-3 guests',
-    maxGuests: 2,
-    image: '/img/gold-room/gold5.jpg',
-    gallery: getGallery('gold-room', 'gold', 18, '/img/gold-room/gold5.jpg'),
-    description: 'Experience Mediterranean luxury in our premium suite featuring contemporary artwork and a spacious layout.',
-    amenities: ['1 King size bed', '1 Bathroom', 'Air Conditioning & WiFi', 'Contemporary artwork', 'Parking Space'],
+// --- MOCK DATA ---
+// In the future, these will come from your database
+const mockRooms = [
+  { 
+    id: 1, name: 'Gold Room', price: 5500, capacity: 2, image: '/img/gold-room/gold1.jpg',
+    imagesCount: 15, folder: 'gold-room', prefix: 'gold',
+    features: ['50 SQM', 'Ideal for 2 guests', '1 King size bed', '1 Bathroom', '4-Seater Dining Table', 'Kitchen cabinet with sink', 'Personal Ref', 'Air conditioning and WiFi', '55" Smart TV with Bluetooth Speaker', 'Electric Kettle', 'Toiletries, towels, and bathrobe', 'Contemporary artwork', 'Parking space'] 
   },
-  {
-    id: '2',
-    name: 'Blue Room',
-    price: 5500,
-    sqm: '75 SQM',
-    capacity: '2-3 guests',
-    maxGuests: 4,
-    image: '/img/blue-room/blue8.jpg',
-    gallery: getGallery('blue-room', 'blue', 16, '/img/blue-room/blue8.jpg'),
-    description: 'A beautifully designed deluxe suite offering comfort and style for small families or groups.',
-    amenities: ['2 Queen size beds', '1 Bathroom', 'Air conditioning & WiFi', 'Smart TV', 'Contemporary Artwork'],
+  { 
+    id: 2, name: 'Blue Room', price: 5500, capacity: 4, image: '/img/blue-room/blue1.jpg',
+    imagesCount: 13, folder: 'blue-room', prefix: 'blue',
+    features: ['50 SQM', 'Ideal for 4 guests', '2 Queen size beds', '1 Bathroom', '6-Seater Dining Table', 'Kitchen cabinet with sink', 'Personal Ref', 'Air conditioning and WiFi', '55" Smart TV with DVD speaker', 'Electric Kettle', 'Toiletries, towels, and bathrobe', 'Contemporary artwork', 'Parking space'] 
   },
-  {
-    id: '3',
-    name: 'Rooftop Lounge',
-    price: 0,
-    sqm: '150 SQM',
-    capacity: '10-15 guests',
-    maxGuests: 15,
-    image: '/img/rooftop/rooftop7.jpg',
-    gallery: getGallery('rooftop', 'rooftop', 17, '/img/rooftop/rooftop7.jpg'),
-    description: 'This 150SQM exclusive space is ideal for 10-15 guests, perfect for hosting late-night hangouts or slow mornings with the cool Amadeo-Tagaytay breeze.',
-    amenities: ['Air Conditioning & WiFi', 'Smart TV', 'Outdoor and Indoor seating', 'Bar counter', 'Dining table setup'],
+  { 
+    id: 3, name: 'Rooftop Lounge', price: null, capacity: 20, image: '/img/rooftop/rooftop1.jpg',
+    imagesCount: 13, folder: 'rooftop', prefix: 'rooftop',
+    features: ['150 SQM', 'Outdoor and indoor seating', 'Bar counter', 'Dining table setup', 'Air conditioning and WiFi', '65" Smart TV with DVD speaker', 'Microphone for Karaoke - available upon request', 'Contemporary artwork'] 
   },
 ];
 
-function RoomDetailsModal({ isOpen, onClose, room }: { isOpen: boolean; onClose: () => void; room: Room | null }) {
-  const [currentIndex, setCurrentIndex] = useState(0);
-
-  useEffect(() => {
-    if (isOpen && room) {
-      const mainIndex = room.gallery.findIndex((img) => img === room.image);
-      setCurrentIndex(mainIndex !== -1 ? mainIndex : 0);
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [isOpen, room]);
-
-  if (!isOpen || !room) return null;
-
-  const handlePrev = () => setCurrentIndex((prev) => (prev === 0 ? room.gallery.length - 1 : prev - 1));
-  const handleNext = () => setCurrentIndex((prev) => (prev === room.gallery.length - 1 ? 0 : prev + 1));
-
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-brand-blue/60 p-4 sm:p-6 backdrop-blur-sm transition-opacity" onClick={onClose}>
-      <div className="relative flex w-full max-w-2xl max-h-[85vh] flex-col overflow-hidden rounded-[32px] bg-white shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <button onClick={onClose} className="absolute right-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-brand-blue/80 text-white transition hover:bg-brand-blue" aria-label="Close modal">
-          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-        </button>
-        <div className="relative h-64 w-full shrink-0 bg-slate-100 sm:h-80">
-          <img src={room.gallery[currentIndex]} alt={room.name} className="h-full w-full object-cover" />
-          <button onClick={handlePrev} className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-brand-blue/80 p-2 text-white transition hover:bg-brand-blue"><svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg></button>
-          <button onClick={handleNext} className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-brand-blue/80 p-2 text-white transition hover:bg-brand-blue"><svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg></button>
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-brand-blue/60 px-3 py-1 text-xs text-white">{currentIndex + 1} / {room.gallery.length}</div>
-        </div>
-        <div className="overflow-y-auto p-6 text-brand-blue sm:p-8">
-          <h2 className="text-3xl font-semibold">{room.name}</h2>
-          <div className="mt-2 flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-widest text-brand-blue/60"><span>{room.sqm}</span><span>•</span><span>{room.capacity}</span></div>
-          <p className="mt-4 text-sm leading-6 text-brand-blue/80">{room.description}</p>
-          <h3 className="mt-6 text-sm font-semibold uppercase tracking-widest text-brand-blue/60">Amenities & Features</h3>
-          <ul className="mt-3 grid gap-2 text-sm text-brand-blue/80 sm:grid-cols-2">
-            {room.amenities.map((amenity) => (<li key={amenity} className="flex items-center gap-2"><span className="text-brand-yellow">★</span> {amenity}</li>))}
-          </ul>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-const stepMeta = [
-  { title: 'Your booking', subtitle: 'Select your room and dates' },
-  { title: 'Your details', subtitle: 'Tell us who is coming' },
-  { title: 'Pay and confirm', subtitle: 'Secure partner checkout' },
+// Mocked fully booked / holiday dates
+const mockBlockedDates = [
+  '2026-05-15',
+  '2026-05-16',
+  '2026-05-24',
+  '2026-05-25',
+  '2026-06-12',
 ];
 
-const confirmationStepMeta = { title: 'Confirmation', subtitle: 'Reservation complete' };
-
-const today = new Date().toISOString().slice(0, 10);
-
-const addDays = (date: string, days: number) => {
-  const value = new Date(date);
-  value.setDate(value.getDate() + days);
-  return value.toISOString().slice(0, 10);
+// --- HELPER FUNCTIONS ---
+const formatDate = (date: Date) => {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
 };
 
-const minCheckInDate = addDays(today, 3); // Minimum 3 days advance booking
+const getStartOfDay = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate());
 
-const fullyBookedMock: string[] = []; // Cleared mock dates to allow long multi-row reservations
-const closedMock: string[] = [];
+const addDays = (date: Date, days: number) => {
+  const result = new Date(date);
+  result.setDate(result.getDate() + days);
+  return result;
+};
 
-function DateRangePicker({
+// --- COMPONENTS ---
+
+function SmartCalendar({
   checkIn,
   checkOut,
   onChange,
 }: {
-  checkIn: string;
-  checkOut: string;
-  onChange: (start: string, end: string) => void;
+  checkIn: Date | null;
+  checkOut: Date | null;
+  onChange: (inDate: Date | null, outDate: Date | null) => void;
 }) {
-  const [currentMonth, setCurrentMonth] = useState(() => {
-    const d = new Date();
-    d.setDate(1);
-    return d;
-  });
-  const [hoverDate, setHoverDate] = useState<string | null>(null);
+  const [currentMonth, setCurrentMonth] = useState(getStartOfDay(new Date()));
 
-  const nextMonthObj = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1);
+  // Buffer calculation: Soonest check-in is 3 days from today
+  const today = getStartOfDay(new Date());
+  const minDate = addDays(today, 3);
 
-  const handlePrevMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
-  const handleNextMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
+  const daysInMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate();
+  const firstDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1).getDay();
 
-  const formatDate = (date: Date) => {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
+  const handlePrevMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
   };
 
-  const getDays = (year: number, month: number) => {
-    const date = new Date(year, month, 1);
-    const days: (Date | null)[] = [];
-    const firstDay = date.getDay();
-    for (let i = 0; i < firstDay; i++) days.push(null);
-    while (date.getMonth() === month) {
-      days.push(new Date(date));
-      date.setDate(date.getDate() + 1);
-    }
-    return days;
+  const handleNextMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
   };
 
-  const checkRangeAvailability = (start: string, end: string) => {
+  const isBlocked = (date: Date) => {
+    return mockBlockedDates.includes(formatDate(date));
+  };
+
+  const isValidRange = (start: Date, end: Date) => {
     let curr = new Date(start);
-    const endObj = new Date(end);
-    curr.setDate(curr.getDate() + 1);
-    while (curr < endObj) {
-      const str = formatDate(curr);
-      if (fullyBookedMock.includes(str) || closedMock.includes(str)) return true;
+    while (curr <= end) {
+      if (isBlocked(curr)) return false;
       curr.setDate(curr.getDate() + 1);
     }
-    return false;
+    return true;
   };
 
-  const handleDayClick = (dateStr: string, isUnavailable: boolean) => {
-    if (isUnavailable) return;
+  const handleDateClick = (clickedDate: Date) => {
+    if (clickedDate < minDate || isBlocked(clickedDate)) return;
+
     if (!checkIn || (checkIn && checkOut)) {
-      onChange(dateStr, '');
-    } else if (checkIn && !checkOut) {
-      if (dateStr <= checkIn) {
-        onChange(dateStr, '');
+      // Start new selection
+      onChange(clickedDate, null);
+    } else {
+      // We have check-in, selecting check-out
+      if (clickedDate < checkIn) {
+        onChange(clickedDate, null);
       } else {
-        if (checkRangeAvailability(checkIn, dateStr)) {
-          onChange(dateStr, '');
+        // Ensure no blocked dates are between check-in and check-out
+        if (isValidRange(checkIn, clickedDate)) {
+          onChange(checkIn, clickedDate);
         } else {
-          onChange(checkIn, dateStr);
-          setHoverDate(null);
+          // If there is a blocked date in between, reset selection to the clicked date
+          onChange(clickedDate, null);
         }
       }
     }
   };
 
-  const renderMonth = (dateObj: Date) => {
-    const y = dateObj.getFullYear();
-    const m = dateObj.getMonth();
-    const days = getDays(y, m);
-    const monthName = dateObj.toLocaleString('default', { month: 'long', year: 'numeric' });
+  const renderDays = () => {
+    const days = [];
+    // Empty slots before first day
+    for (let i = 0; i < firstDayOfMonth; i++) {
+      days.push(<div key={`empty-${i}`} className="h-10 w-10"></div>);
+    }
 
-    return (
-      <div className="flex-1 min-w-[260px]">
-        <div className="mb-4 text-center font-semibold text-brand-blue">{monthName}</div>
-        <div className="mb-2 grid grid-cols-7 text-center text-xs font-semibold text-brand-blue/50">
-          {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((d) => <div key={d}>{d}</div>)}
+    // Days of the month
+    for (let i = 1; i <= daysInMonth; i++) {
+      const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), i);
+      const dateStr = formatDate(date);
+      const isPastOrBuffer = date < minDate;
+      const isFullyBooked = mockBlockedDates.includes(dateStr);
+      const isDisabled = isPastOrBuffer || isFullyBooked;
+
+      const isCheckIn = checkIn && formatDate(checkIn) === dateStr;
+      const isCheckOut = checkOut && formatDate(checkOut) === dateStr;
+      const isInRange = checkIn && checkOut && date > checkIn && date < checkOut;
+
+      let baseClasses = "relative flex h-10 w-10 items-center justify-center rounded-full text-sm transition ";
+      
+      if (isDisabled) {
+        baseClasses += "cursor-not-allowed text-gray-300 ";
+        if (isFullyBooked) baseClasses += "line-through decoration-red-400/50 ";
+      } else if (isCheckIn || isCheckOut) {
+        baseClasses += "bg-brand-blue text-white font-semibold shadow-md ";
+      } else if (isInRange) {
+        baseClasses += "bg-brand-blue/10 text-brand-blue font-medium rounded-none ";
+      } else {
+        baseClasses += "text-brand-blue hover:bg-brand-blue/5 cursor-pointer ";
+      }
+
+      days.push(
+        <div key={i} className="flex justify-center p-1">
+          <button
+            type="button"
+            onClick={() => handleDateClick(date)}
+            disabled={isDisabled}
+            className={baseClasses}
+            title={isFullyBooked ? "Fully Booked/Holiday" : ""}
+          >
+            {i}
+            {isFullyBooked && !isPastOrBuffer && (
+               <span className="absolute bottom-1 h-1 w-1 rounded-full bg-red-400"></span>
+            )}
+          </button>
         </div>
-        <div className="grid grid-cols-7 gap-y-2">
-          {days.map((day, idx) => {
-            if (!day) return <div key={`empty-${idx}`} className="h-10 w-full" />;
-            const dateStr = formatDate(day);
-            const isPast = dateStr < minCheckInDate;
-            const isFullyBooked = fullyBookedMock.includes(dateStr);
-            const isClosed = closedMock.includes(dateStr);
-            const isUnavailable = isPast || isFullyBooked || isClosed;
-
-            const isCheckIn = dateStr === checkIn;
-            const isCheckOut = dateStr === checkOut;
-            const isSelected = isCheckIn || isCheckOut;
-            
-            let inRangeBg = false;
-            let isHover = false;
-            
-            if (checkIn && checkOut) {
-              inRangeBg = dateStr > checkIn && dateStr < checkOut;
-            } else if (checkIn && hoverDate && !checkOut) {
-              const invalidRange = checkRangeAvailability(checkIn, hoverDate);
-              if (!invalidRange) {
-                isHover = dateStr > checkIn && dateStr <= hoverDate;
-                inRangeBg = isHover && dateStr !== hoverDate;
-              }
-            }
-
-            let rangeSpanClass = '';
-            if (isCheckIn && (checkOut || isHover)) {
-              rangeSpanClass = 'absolute right-0 w-1/2 h-full bg-brand-blue/10';
-            } else if (isCheckOut || (isHover && dateStr === hoverDate)) {
-              rangeSpanClass = 'absolute left-0 w-1/2 h-full bg-brand-blue/10';
-            }
-
-            let buttonClass = 'text-brand-blue hover:bg-brand-blue/10';
-            if (isSelected) {
-              buttonClass = 'bg-brand-blue text-white shadow-md z-10';
-            } else if (isClosed) {
-              buttonClass = 'bg-gray-200 text-gray-400 cursor-not-allowed';
-            } else if (isFullyBooked) {
-              buttonClass = 'bg-red-50 text-red-400 line-through cursor-not-allowed border border-red-100';
-            } else if (isPast) {
-              buttonClass = 'text-gray-300 cursor-not-allowed';
-            }
-
-            return (
-              <div 
-                key={dateStr} 
-                className="relative flex h-10 w-full items-center justify-center"
-                onMouseEnter={() => !isUnavailable && checkIn && !checkOut && setHoverDate(dateStr)}
-                onMouseLeave={() => setHoverDate(null)}
-              >
-                {inRangeBg && <div className="absolute inset-0 bg-brand-blue/10" />}
-                {rangeSpanClass && <div className={rangeSpanClass} />}
-                <button
-                  type="button"
-                  disabled={isUnavailable}
-                  onClick={() => handleDayClick(dateStr, isUnavailable)}
-                  className={`relative flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium transition-all ${buttonClass}`}
-                >
-                  {day.getDate()}
-                </button>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    );
+      );
+    }
+    return days;
   };
 
+  const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
   return (
-    <div className="w-full select-none">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
-        <div className="flex items-center gap-4 text-xs font-medium text-brand-blue/70">
-           <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded-full bg-brand-blue"></span> Selected</span>
-           <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded-full bg-red-100 border border-red-200"></span> Fully Booked</span>
-           <span className="flex items-center gap-1.5"><span className="h-3 w-3 rounded-full bg-gray-200"></span> Closed</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <button type="button" onClick={handlePrevMonth} className="rounded-full border border-brand-blue/20 p-1.5 text-brand-blue hover:bg-brand-blue/5 transition">
-             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
-          </button>
-          <button type="button" onClick={handleNextMonth} className="rounded-full border border-brand-blue/20 p-1.5 text-brand-blue hover:bg-brand-blue/5 transition">
-             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
-          </button>
-        </div>
+    <div className="w-full max-w-sm mx-auto rounded-3xl border border-brand-blue/10 bg-white p-6 shadow-sm">
+      {/* Header */}
+      <div className="mb-6 flex items-center justify-between">
+        <button onClick={handlePrevMonth} className="rounded-full p-2 text-brand-blue/70 hover:bg-slate-100 transition">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-5 w-5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+          </svg>
+        </button>
+        <h3 className="font-semibold text-brand-blue">
+          {monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}
+        </h3>
+        <button onClick={handleNextMonth} className="rounded-full p-2 text-brand-blue/70 hover:bg-slate-100 transition">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-5 w-5">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+          </svg>
+        </button>
       </div>
-      <div className="flex flex-col md:flex-row gap-8 lg:gap-12 justify-center">
-        {renderMonth(currentMonth)}
-        {renderMonth(nextMonthObj)}
+
+      {/* Days Header */}
+      <div className="mb-2 grid grid-cols-7 text-center text-xs font-semibold text-brand-blue/50 uppercase">
+        <div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
+      </div>
+
+      {/* Calendar Grid */}
+      <div className="grid grid-cols-7 gap-y-2">
+        {renderDays()}
+      </div>
+
+      {/* Legend */}
+      <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-xs text-brand-blue/70 border-t border-brand-blue/5 pt-4">
+        <div className="flex items-center gap-1.5">
+          <span className="h-3 w-3 rounded-full bg-brand-blue"></span> Selected
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="h-3 w-3 rounded-full border border-gray-300 flex items-center justify-center"><span className="h-1 w-1 bg-red-400 rounded-full"></span></span> Unavailable
+        </div>
       </div>
     </div>
   );
 }
 
-const formatCurrency = (amount: number) =>
-  amount.toLocaleString('en-US', {
-    style: 'currency',
-    currency: 'PHP',
-    minimumFractionDigits: 0,
-  });
-
-const formatDisplayDate = (dateStr: string) => {
-  if (!dateStr) return 'Add Date';
-  const [y, m, d] = dateStr.split('-');
-  const date = new Date(Number(y), Number(m) - 1, Number(d));
-  return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: '2-digit' });
-};
-
-function BookNowFlow() {
-  const [currentStep, setCurrentStep] = useState(1);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [bookingData, setBookingData] = useState<BookingData>({
-    room: null,
-    checkIn: '',
-    checkOut: '',
-    guests: 2,
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    paymentMethod: '',
-  });
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const searchParams = useSearchParams();
-  const roomId = searchParams.get('roomId');
-  const checkInParam = searchParams.get('checkIn');
-  const checkOutParam = searchParams.get('checkOut');
-  const guestsParam = searchParams.get('guests');
-
-  const [activePopover, setActivePopover] = useState<'room' | 'dates' | 'guests' | null>(null);
-
-  useEffect(() => {
-    const handleClickOutside = () => setActivePopover(null);
-    if (activePopover) {
-      document.addEventListener('click', handleClickOutside);
-    }
-    return () => document.removeEventListener('click', handleClickOutside);
-  }, [activePopover]);
-
-  useEffect(() => {
-    setBookingData((prev) => {
-      const room = roomId ? rooms.find((item) => item.id === roomId) || prev.room : prev.room;
-      return {
-        ...prev,
-        room,
-        checkIn: checkInParam || prev.checkIn,
-        checkOut: checkOutParam || prev.checkOut,
-        guests: guestsParam ? Number(guestsParam) : prev.guests,
-      };
-    });
-  }, [roomId, checkInParam, checkOutParam, guestsParam]);
-
-  const calculateNights = () => {
-    if (!bookingData.checkIn || !bookingData.checkOut) return 0;
-    const checkIn = new Date(bookingData.checkIn);
-    const checkOut = new Date(bookingData.checkOut);
-    const diff = (checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24);
-    return diff > 0 ? diff : 0;
-  };
-
-  const calculateCost = () => {
-    if (!bookingData.checkIn || !bookingData.checkOut || !bookingData.room) return 0;
-    if (bookingData.room.id === '3') return 0; // Rooftop Lounge has no upfront price
-    const checkIn = new Date(bookingData.checkIn);
-    const checkOut = new Date(bookingData.checkOut);
-    let total = 0;
-    let currentDate = new Date(checkIn);
-    while (currentDate < checkOut) {
-      const day = currentDate.getDay();
-      const isWeekend = day === 5 || day === 6; // Friday and Saturday nights
-      if (bookingData.room.id === '1' || bookingData.room.id === '2') {
-        total += isWeekend ? 6000 : 5500;
-      } else {
-        total += bookingData.room.price;
-      }
-      currentDate.setDate(currentDate.getDate() + 1);
-    }
-    return total;
-  };
-
-  const totalCost = calculateCost();
-
-  const canProceed = () => {
-    if (currentStep === 1) {
-      return (
-        bookingData.room !== null &&
-        bookingData.checkIn !== '' &&
-        bookingData.checkOut !== '' &&
-        bookingData.guests <= bookingData.room.maxGuests
-      );
-    }
-    if (currentStep === 2)
-      return (
-        bookingData.firstName &&
-        bookingData.lastName &&
-        bookingData.email &&
-        bookingData.phone
-      );
-    if (currentStep === 3) return bookingData.room?.id === '3' || bookingData.paymentMethod !== '';
-    return true;
-  };
-
-  const goNext = () => {
-    if (canProceed() && currentStep < 4) {
-      setCurrentStep(currentStep + 1);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  };
-
-  const goPrev = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  };
-
-  const handleSubmit = async () => {
-    if (canProceed()) {
-      setIsSubmitting(true);
-      try {
-        await fetch('/api/booking', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...bookingData, totalCost }),
-        });
-        // Proceed to confirmation screen 
-        setCurrentStep(4);
-      } catch (error) {
-        console.error('Error submitting booking:', error);
-        setCurrentStep(4); // Fallback so UI still progresses if email setup is incomplete
-      } finally {
-        setIsSubmitting(false);
-      }
-    }
-  };
-
+function ProgressBar({ currentStep }: { currentStep: number }) {
+  const steps = ["Room", "Dates", "Add-ons", "Guests", "Payment", "Rules"];
+  
   return (
-    <main className="bg-[#f8f9ff] text-brand-blue">
-      {/* Sticky Booking Summary Bar */}
-      <div className="sticky top-[72px] z-40 w-full border-b border-brand-blue/10 bg-white shadow-sm lg:top-[88px]">
-        <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-2 px-2 py-3 sm:gap-4 md:px-6 md:py-4">
+    <div className="mb-12 relative w-full max-w-3xl mx-auto">
+      <div className="absolute top-1/2 left-0 h-0.5 w-full -translate-y-1/2 bg-brand-blue/10 z-0"></div>
+      <div 
+        className="absolute top-1/2 left-0 h-0.5 -translate-y-1/2 bg-brand-blue transition-all duration-300 z-0"
+        style={{ width: `${((currentStep - 1) / (steps.length - 1)) * 100}%` }}
+      ></div>
+      <div className="relative z-10 flex justify-between">
+        {steps.map((label, index) => {
+          const stepNum = index + 1;
+          const isCompleted = stepNum < currentStep;
+          const isActive = stepNum === currentStep;
           
-          {/* Location */}
-          <div className="flex flex-1 min-w-0 items-center justify-center gap-1.5 rounded-[20px] border border-brand-blue/20 bg-[#f8f9ff] px-2 py-2 transition hover:bg-brand-blue/5 sm:justify-start sm:gap-3 sm:rounded-full sm:px-5 sm:py-2.5">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4 shrink-0 text-brand-blue sm:h-5 sm:w-5">
-              <path fillRule="evenodd" d="M11.54 22.351l.07.04.028.016a.76.76 0 00.723 0l.028-.015.071-.041a16.975 16.975 0 001.144-.742 19.58 19.58 0 002.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 00-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 002.682 2.282 16.975 16.975 0 001.145.742zM12 13.5a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
-            </svg>
-            <div className="flex min-w-0 flex-col text-center sm:text-left">
-              <span className="truncate text-[10px] font-bold leading-tight text-brand-blue sm:text-sm">Hotel at Home PH</span>
-              <span className="truncate text-[9px] text-brand-blue/70 sm:text-xs">Amadeo, Cavite</span>
-            </div>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="hidden h-4 w-4 shrink-0 text-brand-blue/60 sm:block sm:ml-auto">
-              <path d="M6 9l6 6 6-6" />
-            </svg>
-          </div>
-
-          {/* Room Selection */}
-          <div 
-            className="relative flex flex-1 min-w-0 cursor-pointer items-center justify-center gap-1.5 rounded-[20px] border border-brand-blue/20 bg-[#f8f9ff] px-2 py-2 transition hover:bg-brand-blue/5 sm:justify-start sm:gap-3 sm:rounded-full sm:px-5 sm:py-2.5" 
-            onClick={(e) => {
-              e.stopPropagation();
-              if (currentStep > 1) setActivePopover(activePopover === 'room' ? null : 'room');
-              else setCurrentStep(1);
-            }}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4 shrink-0 text-brand-blue sm:h-5 sm:w-5">
-              <path d="M3.75 3.375a.75.75 0 00-.75.75v13.5a.75.75 0 001.5 0V15h15v2.625a.75.75 0 001.5 0v-6.375A4.125 4.125 0 0016.875 7.125h-3.375A4.125 4.125 0 009.375 11.25v.375H4.5v-7.5a.75.75 0 00-.75-.75zm4.875 7.875V11.25a2.625 2.625 0 012.625-2.625h3.375a2.625 2.625 0 012.625 2.625v.375h-8.625zM6 8.25a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
-            </svg>
-            <div className="flex min-w-0 flex-col text-center sm:text-left">
-              <span className="truncate text-[10px] font-bold leading-tight text-brand-blue sm:text-sm">
-                {bookingData.room ? bookingData.room.name : 'Select Room'}
-              </span>
-              <span className="truncate text-[9px] text-brand-blue/70 sm:text-xs">Room Type</span>
-            </div>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="hidden h-4 w-4 shrink-0 text-brand-blue/60 sm:block sm:ml-auto">
-              <path d="M6 9l6 6 6-6" />
-            </svg>
-
-            {activePopover === 'room' && currentStep > 1 && (
-              <div 
-                className="absolute top-full left-0 mt-3 w-64 rounded-2xl bg-white p-4 shadow-xl border border-brand-blue/10 z-50 cursor-default"
-                onClick={(e) => e.stopPropagation()}
+          return (
+            <div key={label} className="flex flex-col items-center gap-2">
+              <div className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold transition-colors duration-300
+                ${isActive ? 'bg-brand-blue text-white ring-4 ring-brand-blue/20' : 
+                  isCompleted ? 'bg-brand-blue text-white' : 'bg-white text-brand-blue border border-brand-blue/20'}`}
               >
-                <label className="block text-sm font-semibold text-brand-blue mb-3">Select Room</label>
-                <div className="flex flex-col gap-2">
-                  {rooms.map((r) => (
-                    <button 
-                      key={r.id}
-                      type="button"
-                      className={`text-left px-3 py-2 rounded-xl text-sm transition ${bookingData.room?.id === r.id ? 'bg-brand-blue/10 font-bold text-brand-blue' : 'hover:bg-brand-blue/5 text-brand-blue/80'}`}
-                      onClick={() => {
-                        setBookingData({...bookingData, room: r});
-                        setActivePopover(null);
-                      }}
-                    >
-                      {r.name}
-                    </button>
-                  ))}
-                </div>
+                {isCompleted ? (
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                ) : (
+                  stepNum
+                )}
               </div>
-            )}
-          </div>
-
-          {/* Check In - Check Out */}
-          <div 
-            className="relative flex flex-1 min-w-0 cursor-pointer items-center justify-center gap-1.5 rounded-[20px] border border-brand-blue/20 bg-[#f8f9ff] px-2 py-2 transition hover:bg-brand-blue/5 sm:justify-start sm:gap-3 sm:rounded-full sm:px-5 sm:py-2.5" 
-            onClick={(e) => {
-              e.stopPropagation();
-              if (currentStep > 1) setActivePopover(activePopover === 'dates' ? null : 'dates');
-              else setCurrentStep(1);
-            }}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4 shrink-0 text-brand-blue sm:h-5 sm:w-5">
-              <path d="M12.75 12.75a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM7.5 15.75a.75.75 0 100-1.5.75.75 0 000 1.5zM8.25 17.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM9.75 15.75a.75.75 0 100-1.5.75.75 0 000 1.5zM10.5 17.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM12 15.75a.75.75 0 100-1.5.75.75 0 000 1.5zM12.75 17.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM14.25 15.75a.75.75 0 100-1.5.75.75 0 000 1.5zM15 17.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM16.5 15.75a.75.75 0 100-1.5.75.75 0 000 1.5zM15 12.75a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM16.5 13.5a.75.75 0 100-1.5.75.75 0 000 1.5z" />
-              <path fillRule="evenodd" d="M6.75 2.25A.75.75 0 017.5 3v1.5h9V3A.75.75 0 0118 3v1.5h.75a3 3 0 013 3v11.25a3 3 0 01-3 3H5.25a3 3 0 01-3-3V7.5a3 3 0 013-3H6V3a.75.75 0 01.75-.75zm13.5 9a1.5 1.5 0 00-1.5-1.5H5.25a1.5 1.5 0 00-1.5 1.5v7.5a1.5 1.5 0 001.5 1.5h13.5a1.5 1.5 0 001.5-1.5v-7.5z" clipRule="evenodd" />
-            </svg>
-            <div className="flex min-w-0 flex-col text-center sm:text-left">
-              <span className="truncate text-[10px] font-bold leading-tight text-brand-blue sm:text-sm">
-                {formatDisplayDate(bookingData.checkIn)} - {formatDisplayDate(bookingData.checkOut)}
+              <span className={`text-xs hidden md:block ${isActive || isCompleted ? 'text-brand-blue font-semibold' : 'text-brand-blue/50'}`}>
+                {label}
               </span>
-              <span className="truncate text-[9px] text-brand-blue/70 sm:text-xs">Check-In - Check-Out</span>
             </div>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="hidden h-4 w-4 shrink-0 text-brand-blue/60 sm:block sm:ml-auto">
-              <path d="M6 9l6 6 6-6" />
-            </svg>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
-            {activePopover === 'dates' && currentStep > 1 && (
-              <div 
-                className="absolute top-full left-1/2 -translate-x-1/2 mt-3 p-5 bg-white rounded-2xl shadow-xl border border-brand-blue/10 z-50 w-[90vw] max-w-[650px] overflow-x-auto cursor-default"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <DateRangePicker 
-                  checkIn={bookingData.checkIn} 
-                  checkOut={bookingData.checkOut}
-                  onChange={(start, end) => setBookingData(prev => ({ ...prev, checkIn: start, checkOut: end }))}
-                />
-              </div>
-            )}
-          </div>
+function BookNowContent() {
+  const searchParams = useSearchParams();
+  
+  // State
+  const [currentStep, setCurrentStep] = useState(1);
+  const [selectedRoomId, setSelectedRoomId] = useState<number | null>(
+    searchParams.get('roomId') ? parseInt(searchParams.get('roomId') as string) : null
+  );
+  const [checkIn, setCheckIn] = useState<Date | null>(
+    searchParams.get('checkIn') ? new Date(searchParams.get('checkIn') as string) : null
+  );
+  const [checkOut, setCheckOut] = useState<Date | null>(
+    searchParams.get('checkOut') ? new Date(searchParams.get('checkOut') as string) : null
+  );
+  const [guests, setGuests] = useState(
+    searchParams.get('guests') ? parseInt(searchParams.get('guests') as string) : 1
+  );
+  const [guestDetails, setGuestDetails] = useState({ firstName: '', lastName: '', email: '', phone: '' });
+  const [paymentDetails, setPaymentDetails] = useState<{ method: string; proof: File | null; idFront: File | null; idBack: File | null }>({ method: 'gcash', proof: null, idFront: null, idBack: null });
+  const [isCheckingDates, setIsCheckingDates] = useState(false);
+  const [datesAvailable, setDatesAvailable] = useState(!!(searchParams.get('checkIn') && searchParams.get('checkOut')));
+  const [bookingConfirmed, setBookingConfirmed] = useState(false);
+  const [confirmationCode, setConfirmationCode] = useState('');
+  const [viewBookingModal, setViewBookingModal] = useState(false);
+  const [viewBookingCode, setViewBookingCode] = useState('');
+  const [agreedToRules, setAgreedToRules] = useState(false);
+  const [viewRoomDetails, setViewRoomDetails] = useState(false);
 
-          {/* Guest Count */}
-          <div 
-            className="relative flex flex-1 min-w-0 cursor-pointer items-center justify-center gap-1.5 rounded-[20px] border border-brand-blue/20 bg-[#f8f9ff] px-2 py-2 transition hover:bg-brand-blue/5 sm:justify-start sm:gap-3 sm:rounded-full sm:px-5 sm:py-2.5" 
-            onClick={(e) => {
-              e.stopPropagation();
-              if (currentStep > 1) setActivePopover(activePopover === 'guests' ? null : 'guests');
-              else setCurrentStep(1);
-            }}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4 shrink-0 text-brand-blue sm:h-5 sm:w-5">
-              <path d="M4.5 6.375a4.125 4.125 0 118.25 0 4.125 4.125 0 01-8.25 0zM14.25 8.625a3.375 3.375 0 116.75 0 3.375 3.375 0 01-6.75 0zM1.5 19.125a7.125 7.125 0 0114.25 0v.003l-.001.119a.75.75 0 01-.363.63 13.067 13.067 0 01-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 01-.364-.63l-.001-.122zM17.25 19.128l-.001.144a2.25 2.25 0 01-.233.96 10.088 10.088 0 005.06-1.01.75.75 0 00.42-.643 4.875 4.875 0 00-6.957-4.611 8.586 8.586 0 011.71 5.157v.003z" />
-            </svg>
-            <div className="flex min-w-0 flex-col text-center sm:text-left">
-              <span className="truncate text-[10px] font-bold leading-tight text-brand-blue sm:text-sm">
-                {bookingData.guests} Guest{bookingData.guests > 1 ? 's' : ''}
-              </span>
-              <span className="truncate text-[9px] text-brand-blue/70 sm:text-xs">Guest Count</span>
+  // Calculate derived values
+  const selectedRoom = mockRooms.find(r => r.id === selectedRoomId);
+  
+  let nights = 0;
+  if (checkIn && checkOut) {
+    const diffTime = Math.abs(checkOut.getTime() - checkIn.getTime());
+    nights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  }
+
+  const roomTotal = selectedRoom && selectedRoom.price !== null ? (nights > 0 ? selectedRoom.price * nights : selectedRoom.price) : null;
+
+  const isStep4Valid = guestDetails.firstName && guestDetails.lastName && guestDetails.email && guestDetails.phone;
+  const isStep5Valid = paymentDetails.idFront && paymentDetails.idBack && (paymentDetails.method === 'cash' || paymentDetails.proof);
+
+  const handleNext = () => {
+    if (currentStep === 1 && !selectedRoomId) return;
+    if (currentStep === 2 && (!checkIn || !checkOut)) return;
+    if (currentStep === 4 && !isStep4Valid) return;
+    if (currentStep === 5 && !isStep5Valid) return;
+    if (currentStep === 6) {
+      if (!agreedToRules) return;
+      const code = 'HH-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+      setConfirmationCode(code);
+      setBookingConfirmed(true);
+      return;
+    }
+    setCurrentStep(prev => Math.min(prev + 1, 6));
+  };
+
+  const handlePrev = () => setCurrentStep(prev => Math.max(prev - 1, 1));
+
+  if (bookingConfirmed) {
+    return (
+      <main className="min-h-screen bg-[#f3f6fb] text-brand-blue pb-20 pt-24">
+        <div className="mx-auto max-w-3xl px-6 text-center">
+          <div className="bg-white rounded-[32px] p-10 shadow-sm border border-brand-blue/5 mt-10">
+            <svg className="w-20 h-20 text-green-500 mx-auto mb-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <h1 className="text-4xl font-script text-brand-blue mb-4">Booking Confirmed!</h1>
+            <p className="text-brand-blue/70 mb-8">Thank you for choosing Hotel at Home. We have received your reservation.</p>
+            
+            <div className="bg-brand-blue/5 rounded-2xl p-6 mb-8 inline-block">
+              <p className="text-sm uppercase tracking-wider text-brand-blue/60 mb-2 font-semibold">Your Confirmation Code</p>
+              <p className="text-3xl font-bold text-brand-blue tracking-widest">{confirmationCode}</p>
             </div>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="hidden h-4 w-4 shrink-0 text-brand-blue/60 sm:block sm:ml-auto">
-              <path d="M6 9l6 6 6-6" />
-            </svg>
-
-            {activePopover === 'guests' && currentStep > 1 && (
-              <div 
-                className="absolute top-full right-0 mt-3 w-56 p-4 bg-white rounded-2xl shadow-xl border border-brand-blue/10 z-50 cursor-default"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <label className="block text-sm font-semibold text-brand-blue mb-3">Guests</label>
-                <div className="flex items-center gap-4">
-                  <button 
-                    type="button"
-                    className="h-10 w-10 rounded-full border border-brand-blue/20 flex items-center justify-center hover:bg-brand-blue/5 disabled:opacity-50 text-brand-blue"
-                    disabled={bookingData.guests <= 1}
-                    onClick={() => setBookingData({...bookingData, guests: bookingData.guests - 1})}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M19.5 12h-15" /></svg>
-                  </button>
-                  <span className="flex-1 text-center font-bold text-brand-blue">{bookingData.guests}</span>
-                  <button 
-                    type="button"
-                    className="h-10 w-10 rounded-full border border-brand-blue/20 flex items-center justify-center hover:bg-brand-blue/5 disabled:opacity-50 text-brand-blue"
-                    disabled={bookingData.room ? bookingData.guests >= bookingData.room.maxGuests : false}
-                    onClick={() => setBookingData({...bookingData, guests: bookingData.guests + 1})}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-                  </button>
-                </div>
-                {bookingData.room && bookingData.guests >= bookingData.room.maxGuests && <p className="mt-3 text-xs text-center text-red-500">Max capacity reached.</p>}
-              </div>
-            )}
+            
+            <p className="text-sm text-brand-blue/70">Please save this code. You can use it in the "View Booking" feature to check your reservation status.</p>
+            
+            <div className="mt-10">
+              <a href="/" className="inline-flex rounded-full bg-brand-blue px-8 py-3 text-sm font-semibold text-white transition hover:bg-[#001a72]">Return to Home</a>
+            </div>
           </div>
         </div>
-      </div>
+      </main>
+    );
+  }
 
-      <section className="min-h-screen px-6 py-12">
-        <div className="mx-auto max-w-7xl">
-          <div className="mx-auto max-w-3xl flex flex-col justify-center text-center pt-12 pb-8">
-            <h1 className="text-3xl font-semibold text-brand-blue md:text-4xl lg:text-4xl leading-tight">
-              Book Your Stay
-            </h1>
-            <p className="mt-3 text-sm leading-6 text-brand-blue/70 max-w-2xl mx-auto">
-              Reserve your room in three easy steps. Smart dates and secure online partner payment make booking faster.
-            </p>
+  return (
+    <main className="min-h-screen bg-[#f3f6fb] text-brand-blue pb-20 pt-24">
+      {/* View Booking Modal */}
+      {viewBookingModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-[32px] p-8 max-w-md w-full shadow-lg relative">
+            <button onClick={() => setViewBookingModal(false)} className="absolute right-6 top-6 text-brand-blue/50 hover:text-brand-blue transition">
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+            <h2 className="text-2xl font-semibold mb-4 text-brand-blue">View Your Booking</h2>
+            <p className="text-sm text-brand-blue/70 mb-6">Enter your confirmation code to check the status of your reservation.</p>
+            <input type="text" placeholder="e.g. HH-ABC123" value={viewBookingCode} onChange={(e) => setViewBookingCode(e.target.value)} className="w-full rounded-xl border border-brand-blue/10 bg-white px-4 py-3 outline-none focus:border-brand-blue transition mb-4 uppercase" />
+            <button onClick={() => { alert('Booking lookup functionality will be available once backend is connected.'); setViewBookingModal(false); }} className="w-full rounded-full bg-brand-blue px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#001a72]">
+              Check Status
+            </button>
           </div>
+        </div>
+      )}
 
-          <div>
-            <div className="mx-auto max-w-7xl">
-              <div className="rounded-[32px] border border-brand-blue/10 bg-white p-5 shadow-sm md:p-6 lg:p-8">
-                <div className="grid grid-cols-3 gap-4 text-center items-center">
-                  {stepMeta.map((step, index) => (
-                    <div key={step.title} className="relative">
-                      <div
-                        className={`mx-auto h-14 w-14 rounded-full border-2 flex items-center justify-center text-base font-semibold transition ${
-                          currentStep === index + 1 || (currentStep === 4 && index === 2)
-                            ? 'bg-brand-blue text-white border-brand-blue'
-                            : 'bg-white text-brand-blue border-brand-blue/20'
-                        }`}
-                      >
-                        {index + 1}
+      {/* Room Details Modal */}
+      {viewRoomDetails && selectedRoom && (
+        <RoomDetailsModal room={selectedRoom} onClose={() => setViewRoomDetails(false)} />
+      )}
+
+      <div className="mx-auto max-w-7xl px-6">
+        <div className="mb-12 text-center relative">
+          <div className="absolute right-0 top-0 hidden sm:block">
+            <button onClick={() => setViewBookingModal(true)} className="text-sm font-semibold text-brand-blue hover:text-accent underline transition">View Booking</button>
+          </div>
+          <h1 className="text-4xl font-script text-brand-blue md:text-5xl">Book Your Stay</h1>
+          <p className="mt-3 text-brand-blue/70">Complete your reservation in just a few simple steps</p>
+          <div className="mt-4 sm:hidden">
+            <button onClick={() => setViewBookingModal(true)} className="text-sm font-semibold text-brand-blue hover:text-accent underline transition">View Booking</button>
+          </div>
+        </div>
+
+        <ProgressBar currentStep={currentStep} />
+
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_350px] gap-8 mt-10">
+          
+          {/* LEFT COLUMN: Form Steps */}
+          <div className="bg-white rounded-[32px] p-6 md:p-10 shadow-sm border border-brand-blue/5">
+            
+            {/* STEP 1: Select Room */}
+            {currentStep === 1 && (
+              <div className="space-y-6">
+                <h2 className="text-2xl font-semibold mb-6">Select Accommodation</h2>
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {mockRooms.map(room => (
+                    <div 
+                      key={room.id}
+                      onClick={() => {
+                        setSelectedRoomId(room.id);
+                        if (guests > room.capacity) setGuests(room.capacity);
+                      }}
+                      className={`cursor-pointer overflow-hidden rounded-2xl border-2 transition-all duration-200 ${
+                        selectedRoomId === room.id 
+                          ? 'border-brand-blue shadow-md bg-brand-blue/5' 
+                          : 'border-brand-blue/10 bg-white hover:border-brand-blue/30'
+                      }`}
+                    >
+                      <div className="h-32 w-full overflow-hidden bg-slate-200 relative">
+                        {room.image ? (
+                           <img src={room.image} alt={room.name} className="w-full h-full object-cover" />
+                        ) : (
+                           <div className="absolute inset-0 flex items-center justify-center text-sm text-brand-blue/50">Image</div>
+                        )}
+                        {selectedRoomId === room.id && (
+                          <div className="absolute top-2 right-2 h-6 w-6 rounded-full bg-brand-blue text-white flex items-center justify-center shadow-sm">
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                          </div>
+                        )}
                       </div>
-                      <div className="mt-3 text-xs uppercase tracking-[0.3em] text-brand-blue/60 hidden lg:block">
-                        {step.title}
+                      <div className="p-4">
+                        <h3 className="font-semibold">{room.name}</h3>
+                        <p className="text-sm text-brand-blue/60 mt-1">Up to {room.capacity} guests</p>
+                        {room.price !== null ? (
+                          <p className="font-bold text-sm mt-3 uppercase tracking-wider text-accent">₱{room.price.toLocaleString()} / night</p>
+                        ) : (
+                          <p className="font-bold text-sm mt-3 uppercase tracking-wider text-accent">TBA / night</p>
+                        )}
                       </div>
-                      {index < stepMeta.length - 1 && (
-                        <span className="absolute right-[-2.5rem] top-1/2 hidden h-[2px] w-20 bg-brand-blue/20 lg:block"></span>
-                      )}
                     </div>
                   ))}
                 </div>
-              </div>
-
-              <div className="mt-12 mx-auto max-w-4xl">
-                <div className="rounded-[32px] border border-brand-blue/10 bg-white p-5 shadow-sm">
-                  <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                
+                {selectedRoom && (
+                  <div className="mt-8 rounded-2xl border border-brand-blue/10 bg-brand-blue/5 p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
-                      <p className="text-sm uppercase tracking-[0.3em] text-brand-blue/40">Step {Math.min(currentStep, 3)}</p>
-                      <h2 className="mt-2 text-2xl font-semibold text-brand-blue">
-                        {currentStep <= 3 ? stepMeta[currentStep - 1].title : confirmationStepMeta.title}
-                      </h2>
+                      <h3 className="font-semibold">Number of Guests</h3>
+                      <p className="text-sm text-brand-blue/60 mt-1">Maximum capacity is {selectedRoom.capacity} guests.</p>
                     </div>
-                    <div className="rounded-full bg-brand-blue/5 px-3 py-1.5 text-xs font-semibold text-brand-blue">
-                      {currentStep <= 3 ? stepMeta[currentStep - 1].subtitle : confirmationStepMeta.subtitle}
+                    <div className="flex items-center gap-4 bg-white rounded-full px-4 py-2 border border-brand-blue/10 shadow-sm w-fit">
+                      <button type="button" onClick={() => setGuests(Math.max(1, guests - 1))} className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-lg transition font-medium text-brand-blue" disabled={guests <= 1}>-</button>
+                      <span className="w-6 text-center font-semibold">{guests}</span>
+                      <button type="button" onClick={() => setGuests(Math.min(selectedRoom.capacity, guests + 1))} className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-lg transition font-medium text-brand-blue" disabled={guests >= selectedRoom.capacity}>+</button>
                     </div>
                   </div>
+                )}
+              </div>
+            )}
 
-                  <div className="mt-8">
-                    {currentStep === 1 && (
-                      <div className="space-y-5">
-
-                        {/* Room Selection */}
-                        <div className="rounded-[24px] border border-brand-blue/10 bg-[#f7f8ff] p-5">
-                          <div className="mb-3 flex items-center justify-between">
-                            <label className="block text-sm font-semibold text-brand-blue">
-                              Select a Room
-                            </label>
-                            {bookingData.room && (
-                              <button
-                                type="button"
-                                onClick={() => setIsModalOpen(true)}
-                                className="text-xs font-semibold text-brand-blue underline transition hover:text-brand-blue/70"
-                              >
-                                View room details
-                              </button>
-                            )}
-                          </div>
-                          <select
-                            value={bookingData.room?.id || ''}
-                            onChange={(e) => {
-                              const room = rooms.find((item) => item.id === e.target.value) || null;
-                              setBookingData({ ...bookingData, room });
-                            }}
-                            className="w-full rounded-2xl border border-brand-blue/20 bg-white px-4 py-3 text-brand-blue focus:border-brand-blue focus:outline-none"
-                          >
-                            <option value="">Choose your room</option>
-                            {rooms.map((room) => (
-                              <option key={room.id} value={room.id}>
-                                {room.name} — {room.price > 0 ? `Starts at ${formatCurrency(room.price)}/night` : 'Price upon inquiry'}
-                              </option>
-                            ))}
-                          </select>
-
-                          {bookingData.room && (
-                            <div className="group relative mt-4 h-32 w-full cursor-pointer overflow-hidden rounded-xl border border-brand-blue/10 sm:h-48" onClick={() => setIsModalOpen(true)}>
-                              <img src={bookingData.room.image} alt={bookingData.room.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                              <div className="absolute inset-0 flex items-center justify-center bg-brand-blue/20 opacity-0 transition-opacity group-hover:opacity-100">
-                                <span className="rounded-full bg-white px-4 py-2 text-xs font-semibold text-brand-blue shadow-sm">View Gallery</span>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Date Selection */}
-                        <div className="rounded-[24px] border border-brand-blue/10 bg-[#f7f8ff] p-5 lg:p-8">
-                          <label className="block text-sm font-semibold text-brand-blue mb-4">Select Dates</label>
-                          <DateRangePicker 
-                            checkIn={bookingData.checkIn} 
-                            checkOut={bookingData.checkOut}
-                            onChange={(start, end) => setBookingData(prev => ({ ...prev, checkIn: start, checkOut: end }))}
-                          />
-                        </div>
-
-                        {/* Guest Selection */}
-                        <div className="rounded-[24px] border border-brand-blue/10 bg-[#f7f8ff] p-5">
-                          <label className="block text-sm font-semibold text-brand-blue mb-3">Guests</label>
-                          <input
-                            type="number"
-                            min="1"
-                            value={bookingData.guests}
-                            onChange={(e) =>
-                              setBookingData({
-                                ...bookingData,
-                                guests: Number(e.target.value) || 1,
-                              })
-                            }
-                            className="w-32 rounded-2xl border border-brand-blue/20 bg-white px-4 py-3 text-brand-blue focus:border-brand-blue focus:outline-none"
-                          />
-                          {bookingData.room && bookingData.guests > bookingData.room.maxGuests && (
-                            <p className="mt-3 text-sm font-semibold text-red-500">
-                              The selected room can only accommodate up to {bookingData.room.maxGuests} guests.
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {currentStep === 2 && (
-                      <div className="space-y-5">
-                        <p className="text-brand-blue/70">
-                          Enter guest details so we can confirm your reservation without delay.
-                        </p>
-                        <div className="grid gap-4 lg:grid-cols-2">
-                          <input
-                            type="text"
-                            placeholder="First Name"
-                            value={bookingData.firstName}
-                            onChange={(e) =>
-                              setBookingData({ ...bookingData, firstName: e.target.value })
-                            }
-                            className="w-full rounded-2xl border border-brand-blue/20 bg-[#f7f8ff] px-4 py-3 text-brand-blue focus:border-brand-blue focus:outline-none"
-                          />
-                          <input
-                            type="text"
-                            placeholder="Last Name"
-                            value={bookingData.lastName}
-                            onChange={(e) =>
-                              setBookingData({ ...bookingData, lastName: e.target.value })
-                            }
-                            className="w-full rounded-2xl border border-brand-blue/20 bg-[#f7f8ff] px-4 py-3 text-brand-blue focus:border-brand-blue focus:outline-none"
-                          />
-                        </div>
-                        <div className="grid gap-4 lg:grid-cols-2">
-                          <input
-                            type="email"
-                            placeholder="Email Address"
-                            value={bookingData.email}
-                            onChange={(e) =>
-                              setBookingData({ ...bookingData, email: e.target.value })
-                            }
-                            className="w-full rounded-2xl border border-brand-blue/20 bg-[#f7f8ff] px-4 py-3 text-brand-blue focus:border-brand-blue focus:outline-none"
-                          />
-                          <input
-                            type="tel"
-                            placeholder="Phone Number"
-                            value={bookingData.phone}
-                            onChange={(e) =>
-                              setBookingData({ ...bookingData, phone: e.target.value })
-                            }
-                            className="w-full rounded-2xl border border-brand-blue/20 bg-[#f7f8ff] px-4 py-3 text-brand-blue focus:border-brand-blue focus:outline-none"
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                    {currentStep === 3 && (
-                      <div className={`space-y-5 transition-opacity ${isSubmitting ? 'pointer-events-none opacity-50' : ''}`}>
-                        {bookingData.room?.id === '3' ? (
-                          <div className="rounded-[24px] border border-brand-blue/10 bg-brand-blue/5 p-6 text-center">
-                            <p className="text-brand-blue/70">
-                              Payment is not required yet for Rooftop Lounge inquiries. Please proceed to submit your request, and our admin will contact you with a quotation and arrangement details.
-                            </p>
-                          </div>
-                        ) : (
+            {/* STEP 2: Choose Dates */}
+            {currentStep === 2 && (
+              <div className="space-y-8">
+                <div>
+                  <h2 className="text-2xl font-semibold">Choose Your Dates</h2>
+                  <p className="text-sm text-brand-blue/60 mt-1">Select your check-in and check-out dates. Earliest check-in starts 3 days from today.</p>
+                </div>
+                
+                <div className="flex flex-col md:flex-row gap-8 items-start">
+                  <div className="flex-shrink-0 w-full md:w-auto">
+                    <SmartCalendar 
+                      checkIn={checkIn} 
+                      checkOut={checkOut} 
+                      onChange={(inD, outD) => { 
+                        setCheckIn(inD); 
+                        setCheckOut(outD); 
+                        if (inD && outD) {
+                          setIsCheckingDates(true);
+                          setDatesAvailable(false);
+                          setTimeout(() => {
+                            setIsCheckingDates(false);
+                            setDatesAvailable(true);
+                          }, 1500);
+                        } else {
+                          setDatesAvailable(false);
+                        }
+                      }} 
+                    />
+                  </div>
+                  
+                  <div className="flex-1 w-full space-y-4 pt-4 md:pt-10">
+                    <div className="rounded-2xl border border-brand-blue/10 bg-brand-blue/5 p-4">
+                      <p className="text-xs font-semibold uppercase tracking-wider text-brand-blue/50 mb-1">Check-in</p>
+                      <p className="font-medium">{checkIn ? checkIn.toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric', year: 'numeric' }) : 'Select date'}</p>
+                      <p className="text-xs text-brand-blue/60 mt-1">From 2:00 PM</p>
+                    </div>
+                    <div className="rounded-2xl border border-brand-blue/10 bg-brand-blue/5 p-4">
+                      <p className="text-xs font-semibold uppercase tracking-wider text-brand-blue/50 mb-1">Check-out</p>
+                      <p className="font-medium">{checkOut ? checkOut.toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric', year: 'numeric' }) : 'Select date'}</p>
+                      <p className="text-xs text-brand-blue/60 mt-1">By 12:00 PM</p>
+                    </div>
+                  
+                    {checkIn && checkOut && (
+                      <div className="mt-2 p-4 rounded-xl border border-brand-blue/10 bg-white flex items-center gap-3 w-fit">
+                        {isCheckingDates ? (
                           <>
-                            <p className="text-brand-blue/70">
-                              Select your preferred payment method. Payment instructions will be sent once your booking is approved by the admin.
-                            </p>
-                            <div className="grid gap-3">
-                              {[
-                                { id: 'gcash', label: 'GCash', description: 'Payment via GCash app' },
-                                { id: 'bank', label: 'Bank Transfer', description: 'Transfer via local banks (BDO, BPI, etc.)' },
-                                { id: 'cash', label: 'Cash', description: 'Pay in cash upon arrival' },
-                              ].map((method) => (
-                                <button
-                                  key={method.id}
-                                  onClick={() =>
-                                    setBookingData({ ...bookingData, paymentMethod: method.id as any })
-                                  }
-                                  className={`w-full rounded-[24px] border p-4 text-left transition ${
-                                    bookingData.paymentMethod === method.id
-                                      ? 'border-brand-blue bg-brand-blue/5'
-                                      : 'border-brand-blue/20 bg-white hover:border-brand-blue'
-                                  }`}
-                                >
-                                  <div className="flex items-center justify-between gap-4">
-                                    <div>
-                                      <h3 className="text-lg font-semibold text-brand-blue">{method.label}</h3>
-                                      <p className="mt-2 text-sm text-brand-blue/70">{method.description}</p>
-                                    </div>
-                                    <span className="text-sm uppercase tracking-[0.3em] text-brand-blue/40">
-                                      {bookingData.paymentMethod === method.id ? 'Selected' : 'Choose'}
-                                    </span>
-                                  </div>
-                                </button>
-                              ))}
-                            </div>
+                            <svg className="animate-spin h-5 w-5 text-brand-blue" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                            <span className="font-medium text-sm text-brand-blue/70">Checking availability for selected dates...</span>
                           </>
-                        )}
-                      </div>
-                    )}
-
-                    {currentStep === 4 && (
-                      <div className="space-y-5 text-center">
-                        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-500 text-white shadow-lg">
-                          ✓
-                        </div>
-                        <h3 className="text-2xl font-semibold text-brand-blue">Booking Request Sent</h3>
-                        <p className="mx-auto max-w-xl text-brand-blue/70">
-                          Your booking request has been received and is subject to admin approval. A confirmation email with further instructions will be sent to {bookingData.email} shortly.
-                        </p>
-                        <div className="rounded-[24px] border border-brand-blue/10 bg-brand-blue/5 p-5 text-left">
-                          <p className="text-sm text-brand-blue/60">Confirmation #</p>
-                          <p className="mt-2 font-semibold text-brand-blue">BK{Date.now().toString().slice(-6)}</p>
-                        </div>
+                        ) : datesAvailable ? (
+                          <>
+                            <svg className="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                            <span className="font-medium text-sm text-green-600">Dates are available!</span>
+                          </>
+                        ) : null}
                       </div>
                     )}
                   </div>
-                  {currentStep < 4 && (
-                    <div className="mt-8 rounded-[24px] border border-brand-blue/10 bg-brand-yellow/10 p-5 text-sm leading-6 text-brand-blue/80">
-                      <strong>Note:</strong> A security deposit of ₱3,000 per room is required upon check-in.
+                </div>
+              </div>
+            )}
+
+            {/* STEP 3: Add-ons (Placeholder) */}
+            {currentStep === 3 && (
+              <div className="py-20 text-center space-y-4 border-2 border-dashed border-brand-blue/10 rounded-2xl">
+                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-12 h-12 mx-auto text-brand-blue/30">
+                   <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.827M11.42 15.17l-3.973 3.973c-.637.636-1.748.636-2.384 0l-1.06-1.06c-.636-.637-.636-1.748 0-2.385l3.973-3.972M11.42 15.17l3.972-3.973M11.42 15.17c-2.839-2.839-2.839-7.442 0-10.281 2.84-2.84 7.443-2.84 10.282 0M6.084 10.334a1.868 1.868 0 11-2.64-2.641 1.868 1.868 0 012.64 2.641z" />
+                 </svg>
+                 <h2 className="text-xl font-semibold">Under Construction</h2>
+                 <p className="text-brand-blue/60 text-sm max-w-sm mx-auto">
+                   Add-ons functionality will be available soon. You can proceed to the next step.
+                 </p>
+              </div>
+            )}
+
+            {/* STEP 4: Guest Details */}
+            {currentStep === 4 && (
+              <div className="space-y-6">
+                <h2 className="text-2xl font-semibold">Guest Details</h2>
+                <div className="grid gap-6 sm:grid-cols-2">
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-brand-blue/60 mb-2">First Name *</label>
+                    <input type="text" value={guestDetails.firstName} onChange={e => setGuestDetails({...guestDetails, firstName: e.target.value})} className="w-full rounded-xl border border-brand-blue/10 bg-white px-4 py-3 outline-none focus:border-brand-blue transition" placeholder="Juan" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-brand-blue/60 mb-2">Last Name *</label>
+                    <input type="text" value={guestDetails.lastName} onChange={e => setGuestDetails({...guestDetails, lastName: e.target.value})} className="w-full rounded-xl border border-brand-blue/10 bg-white px-4 py-3 outline-none focus:border-brand-blue transition" placeholder="Dela Cruz" />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-brand-blue/60 mb-2">Email Address *</label>
+                    <input type="email" value={guestDetails.email} onChange={e => setGuestDetails({...guestDetails, email: e.target.value})} className="w-full rounded-xl border border-brand-blue/10 bg-white px-4 py-3 outline-none focus:border-brand-blue transition" placeholder="juan@example.com" />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-brand-blue/60 mb-2">Contact Number *</label>
+                    <input type="tel" value={guestDetails.phone} onChange={e => setGuestDetails({...guestDetails, phone: e.target.value})} className="w-full rounded-xl border border-brand-blue/10 bg-white px-4 py-3 outline-none focus:border-brand-blue transition" placeholder="0912 345 6789" />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* STEP 5: Payment */}
+            {currentStep === 5 && (
+              <div className="space-y-8">
+                <h2 className="text-2xl font-semibold">Payment & Verification</h2>
+                
+                <div className="space-y-4">
+                  <p className="text-sm font-semibold uppercase tracking-wider text-brand-blue/60">1. Select Payment Method</p>
+                  <div className="grid sm:grid-cols-3 gap-4">
+                    <label className={`flex cursor-pointer items-center gap-3 rounded-xl border p-4 transition ${paymentDetails.method === 'gcash' ? 'border-brand-blue bg-brand-blue/5' : 'border-brand-blue/10 hover:border-brand-blue/30'}`}>
+                      <input type="radio" name="paymentMethod" value="gcash" checked={paymentDetails.method === 'gcash'} onChange={() => setPaymentDetails({...paymentDetails, method: 'gcash'})} className="h-4 w-4 text-brand-blue" />
+                      <span className="font-medium">GCash</span>
+                    </label>
+                    <label className={`flex cursor-pointer items-center gap-3 rounded-xl border p-4 transition ${paymentDetails.method === 'bank' ? 'border-brand-blue bg-brand-blue/5' : 'border-brand-blue/10 hover:border-brand-blue/30'}`}>
+                      <input type="radio" name="paymentMethod" value="bank" checked={paymentDetails.method === 'bank'} onChange={() => setPaymentDetails({...paymentDetails, method: 'bank'})} className="h-4 w-4 text-brand-blue" />
+                      <span className="font-medium">Bank Transfer</span>
+                    </label>
+                    <label className={`flex cursor-pointer items-center gap-3 rounded-xl border p-4 transition ${paymentDetails.method === 'cash' ? 'border-brand-blue bg-brand-blue/5' : 'border-brand-blue/10 hover:border-brand-blue/30'}`}>
+                      <input type="radio" name="paymentMethod" value="cash" checked={paymentDetails.method === 'cash'} onChange={() => setPaymentDetails({...paymentDetails, method: 'cash'})} className="h-4 w-4 text-brand-blue" />
+                      <span className="font-medium">Cash on Arrival</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  <p className="text-sm font-semibold uppercase tracking-wider text-brand-blue/60">2. Upload Requirements *</p>
+                  
+                  {paymentDetails.method !== 'cash' && (
+                    <div className="rounded-xl border border-brand-blue/10 p-4">
+                      <label className="block font-medium mb-1">Payment Screenshot</label>
+                      <p className="text-xs text-brand-blue/60 mb-3">Please upload a clear screenshot of your successful transaction.</p>
+                      <input type="file" accept="image/*" onChange={e => setPaymentDetails({...paymentDetails, proof: e.target.files?.[0] || null})} className="w-full text-sm text-brand-blue/70 file:mr-4 file:rounded-full file:border-0 file:bg-brand-blue/10 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-brand-blue hover:file:bg-brand-blue/20" />
                     </div>
                   )}
+
+                  <div className="rounded-xl border border-brand-blue/10 p-4">
+                    <label className="block font-medium mb-1">Valid ID (Front)</label>
+                    <p className="text-xs text-brand-blue/60 mb-3">Upload the front picture of a valid government-issued ID.</p>
+                    <input type="file" accept="image/*" onChange={e => setPaymentDetails({...paymentDetails, idFront: e.target.files?.[0] || null})} className="w-full text-sm text-brand-blue/70 file:mr-4 file:rounded-full file:border-0 file:bg-brand-blue/10 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-brand-blue hover:file:bg-brand-blue/20" />
+                  </div>
+
+                  <div className="rounded-xl border border-brand-blue/10 p-4">
+                    <label className="block font-medium mb-1">Valid ID (Back)</label>
+                    <p className="text-xs text-brand-blue/60 mb-3">Upload the back picture of the same valid government-issued ID.</p>
+                    <input type="file" accept="image/*" onChange={e => setPaymentDetails({...paymentDetails, idBack: e.target.files?.[0] || null})} className="w-full text-sm text-brand-blue/70 file:mr-4 file:rounded-full file:border-0 file:bg-brand-blue/10 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-brand-blue hover:file:bg-brand-blue/20" />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* STEP 6: Rules & Regulations */}
+            {currentStep === 6 && (
+              <div className="space-y-8">
+                <h2 className="text-2xl font-semibold">Rules & Regulations</h2>
+                
+                <div className="rounded-2xl border border-brand-blue/10 bg-white p-6 h-64 overflow-y-auto space-y-6 text-sm text-brand-blue/80 shadow-inner">
+                  <div>
+                    <h3 className="font-semibold text-brand-blue mb-2 text-base">Check-in & Check-out</h3>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li>Check-in: 2:00 PM</li>
+                      <li>Check-out: 12:00 PM</li>
+                      <li>Late check-out subject to availability.</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-brand-blue mb-2 text-base">General Rules</h3>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li>No smoking inside the rooms.</li>
+                      <li>No pets allowed.</li>
+                      <li>Respect quiet hours (10 PM – 7 AM).</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-brand-blue mb-2 text-base">Cancellation Policy</h3>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li>Full refund if canceled up to 4 days before check-in.</li>
+                      <li>50% refund if canceled 3 days or less before check-in.</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-brand-blue mb-2 text-base">Damages & Liability</h3>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li>Guests are responsible for any damages.</li>
+                      <li>Report any issues immediately to staff.</li>
+                      <li>Security deposit of ₱3,000 per room is required upon check-in.</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-brand-blue/10 bg-brand-blue/5 p-4 transition hover:border-brand-blue/30">
+                  <input type="checkbox" checked={agreedToRules} onChange={(e) => setAgreedToRules(e.target.checked)} className="mt-1 h-4 w-4 rounded text-brand-blue focus:ring-brand-blue" />
+                  <span className="text-sm font-medium">
+                    I have read and agree to the house rules, cancellation policy, and terms of stay.
+                  </span>
+                </label>
+              </div>
+            )}
+
+            {/* Navigation Buttons */}
+            <div className="flex items-center justify-between mt-10 pt-6 border-t border-brand-blue/10">
+              <button 
+                onClick={handlePrev}
+                disabled={currentStep === 1}
+                className={`px-6 py-2.5 rounded-full font-semibold text-sm transition ${
+                  currentStep === 1 
+                    ? 'opacity-0 pointer-events-none' 
+                    : 'bg-slate-100 text-brand-blue hover:bg-slate-200'
+                }`}
+              >
+                Back
+              </button>
+              <button 
+                onClick={handleNext}
+                disabled={
+                  (currentStep === 1 && !selectedRoomId) ||
+                  (currentStep === 2 && (!checkIn || !checkOut || isCheckingDates || !datesAvailable)) ||
+                  (currentStep === 4 && !isStep4Valid) ||
+                  (currentStep === 5 && !isStep5Valid) ||
+                  (currentStep === 6 && !agreedToRules)
+                }
+                className={`px-8 py-2.5 rounded-full font-semibold text-sm transition ${
+                  ((currentStep === 1 && !selectedRoomId) || (currentStep === 2 && (!checkIn || !checkOut || isCheckingDates || !datesAvailable)) || (currentStep === 4 && !isStep4Valid) || (currentStep === 5 && !isStep5Valid) || (currentStep === 6 && !agreedToRules))
+                    ? 'bg-brand-blue/30 text-white cursor-not-allowed'
+                    : 'bg-brand-blue text-white hover:bg-[#001a72] shadow-sm'
+                }`}
+              >
+                {currentStep === 6 ? 'Confirm Booking' : 'Continue'}
+              </button>
+            </div>
+          </div>
+
+          {/* RIGHT COLUMN: Booking Summary */}
+          <div className="lg:sticky lg:top-24 h-fit bg-brand-blue text-white rounded-[32px] p-8 shadow-lg">
+            <h3 className="font-script text-3xl text-brand-yellow mb-6 border-b border-white/10 pb-4">Booking Summary</h3>
+            
+            <div className="space-y-6 text-sm">
+              <div>
+                <p className="text-white/60 mb-1 uppercase tracking-wider text-xs">Room / Space</p>
+                {selectedRoom ? (
+                  <div>
+                    <p className="font-medium text-lg">{selectedRoom.name}</p>
+                    <button onClick={() => setViewRoomDetails(true)} className="text-xs text-brand-yellow hover:underline mt-1">View Room Details</button>
+                  </div>
+                ) : (
+                  <p className="italic text-white/40">Not selected</p>
+                )}
+              </div>
+
+              {selectedRoom && (
+                <div>
+                  <p className="text-white/60 mb-1 uppercase tracking-wider text-xs">Guests</p>
+                  <p className="font-medium">{guests} Guest{guests > 1 ? 's' : ''}</p>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-white/60 mb-1 uppercase tracking-wider text-xs">Check-in</p>
+                  <p className="font-medium">{checkIn ? checkIn.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '--'}</p>
+                </div>
+                <div>
+                  <p className="text-white/60 mb-1 uppercase tracking-wider text-xs">Check-out</p>
+                  <p className="font-medium">{checkOut ? checkOut.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '--'}</p>
                 </div>
               </div>
 
-              <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <button
-                  onClick={goPrev}
-                  disabled={currentStep === 1}
-                  className="w-full rounded-2xl border border-brand-blue/20 bg-white px-6 py-3 text-sm font-semibold text-brand-blue transition hover:border-brand-blue disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
-                >
-                  Previous Step
-                </button>
-                <div className="text-center text-sm text-brand-blue/60">
-                  Step {Math.min(currentStep, 3)} of 3
+              {nights > 0 && (
+                 <div>
+                   <p className="text-white/60 mb-1 uppercase tracking-wider text-xs">Duration</p>
+                   <p className="font-medium">{nights} Night{nights > 1 ? 's' : ''}</p>
+                 </div>
+              )}
+
+              <div className="border-t border-white/10 pt-6 mt-6">
+                <div className="flex justify-between items-end">
+                  <span className="text-white/80">Total Due</span>
+                  <span className="text-2xl font-bold text-brand-yellow tracking-wider">
+                    {roomTotal !== null ? `₱${roomTotal.toLocaleString()}` : 'TBA'}
+                  </span>
                 </div>
-                {currentStep === 3 ? (
-                  <button
-                    onClick={handleSubmit}
-                    disabled={!canProceed() || isSubmitting}
-                    className="w-full rounded-2xl bg-accent px-6 py-3 text-sm font-semibold text-brand-blue transition hover:bg-brand-yellow disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
-                  >
-                    {isSubmitting ? (
-                      <span className="flex items-center justify-center gap-2">
-                        <svg className="h-4 w-4 animate-spin text-brand-blue" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Processing...
-                      </span>
-                    ) : bookingData.room?.id === '3' ? (
-                      'Submit Inquiry'
-                    ) : (
-                      'Pay and Confirm'
-                    )}
-                  </button>
-                ) : (
-                  <button
-                    onClick={goNext}
-                    disabled={!canProceed() || currentStep >= 4}
-                    className="w-full rounded-2xl bg-accent px-6 py-3 text-sm font-semibold text-brand-blue transition hover:bg-brand-yellow disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
-                  >
-                    {currentStep === 2 ? 'Proceed to Payment' : 'Next Step'}
-                  </button>
+                {selectedRoom && roomTotal !== null && (
+                   <p className="text-right text-xs text-white/50 mt-1">Taxes and fees included</p>
                 )}
               </div>
             </div>
-          </div>
-        </div>
 
-        <RoomDetailsModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} room={bookingData.room} />
-      </section>
+            {/* Trust Badges / Info */}
+            <div className="mt-8 pt-6 border-t border-white/10 space-y-3 text-xs text-white/60">
+              <div className="flex items-center gap-2">
+                 <svg className="w-4 h-4 text-brand-yellow" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                 Secure booking
+              </div>
+              <div className="flex items-center gap-2">
+                 <svg className="w-4 h-4 text-brand-yellow" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                 Flexible cancellation options
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
     </main>
   );
 }
 
 export default function BookNowPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <BookNowFlow />
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center text-brand-blue font-semibold">
+        Loading Booking System...
+      </div>
+    }>
+      <BookNowContent />
     </Suspense>
+  );
+}
+
+function RoomDetailsModal({ room, onClose }: { room: typeof mockRooms[0], onClose: () => void }) {
+  const [currentIdx, setCurrentIdx] = useState(0);
+  
+  const handlePrev = () => setCurrentIdx(prev => prev === 0 ? room.imagesCount - 1 : prev - 1);
+  const handleNext = () => setCurrentIdx(prev => prev === room.imagesCount - 1 ? 0 : prev + 1);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+      <div className="bg-white rounded-[32px] overflow-hidden max-w-2xl w-full shadow-lg relative flex flex-col max-h-[90vh]">
+        <button onClick={onClose} className="absolute right-4 top-4 z-10 rounded-full bg-black/20 p-2 text-white hover:bg-black/40 transition">
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+        
+        {/* Carousel */}
+        <div className="relative h-64 sm:h-80 bg-slate-100 flex-shrink-0">
+          <img src={`/img/${room.folder}/${room.prefix}${currentIdx + 1}.jpg`} alt={room.name} className="w-full h-full object-cover" />
+          <button onClick={handlePrev} className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-brand-blue/80 hover:bg-brand-blue p-2 text-white transition">
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+          </button>
+          <button onClick={handleNext} className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-brand-blue/80 hover:bg-brand-blue p-2 text-white transition">
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+          </button>
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-xs text-white bg-brand-blue/60 px-3 py-1 rounded-full">
+            {currentIdx + 1} / {room.imagesCount}
+          </div>
+        </div>
+
+        {/* Details */}
+        <div className="p-6 sm:p-8 overflow-y-auto">
+          <h3 className="text-2xl font-semibold text-brand-blue mb-4">{room.name}</h3>
+          <div className="grid gap-2 text-sm text-brand-blue/70 sm:grid-cols-2">
+            {room.features.map((feature: string, idx: number) => (
+              <p key={idx} className="flex items-start gap-2">
+                <span className="text-accent mt-0.5">•</span>
+                {feature}
+              </p>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

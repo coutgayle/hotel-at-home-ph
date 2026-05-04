@@ -104,16 +104,22 @@ export default function InfoPage() {
               <p className="text-sm uppercase tracking-[0.28em] text-brand-blue/60">House Rules</p>
               <h2 className="mt-4 text-3xl font-semibold text-brand-blue md:text-4xl">A calm, comfortable stay for every guest</h2>
             </div>
-            <button className="inline-flex h-11 items-center justify-center rounded-full bg-brand-yellow px-6 text-sm font-semibold text-brand-blue transition hover:bg-brand-yellow/90">
+            <a
+              href="/rules/rules.pdf"
+              download="Hotel_at_Home_Rules.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex h-11 items-center justify-center rounded-full bg-brand-yellow px-6 text-sm font-semibold text-brand-blue transition hover:bg-brand-yellow/90"
+            >
               Print Rules
-            </button>
+            </a>
           </div>
 
           <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
             <div className="rounded-[28px] border border-brand-blue/10 bg-brand-white p-6">
               <h3 className="text-base font-semibold text-brand-blue">Check-in & Check-out</h3>
               <ul className="mt-4 space-y-3 text-sm text-brand-blue/70">
-                <li>Check-in: 2:00 PM - 10:00 PM</li>
+                <li>Check-in: 2:00 PM</li>
                 <li>Check-out: 12:00 PM</li>
                 <li>Late check-out subject to availability.</li>
               </ul>
