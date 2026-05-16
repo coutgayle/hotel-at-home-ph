@@ -639,61 +639,83 @@ function BookNowContent() {
             {/* STEP 4: Payment */}
             {currentStep === 4 && (
               <div className="space-y-8">
-                <h2 className="text-2xl font-semibold">Payment & Verification</h2>
+                <h2 className="text-2xl font-semibold">
+                  {selectedRoomId === 3 ? 'Event Details & Verification' : 'Payment & Verification'}
+                </h2>
                 
-                <div className="space-y-4">
-                  <p className="text-sm font-semibold uppercase tracking-wider text-brand-blue/60">1. Select Payment Method</p>
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <label className={`flex cursor-pointer items-center gap-3 rounded-xl border p-4 transition ${paymentDetails.method === 'gcash' ? 'border-brand-blue bg-brand-blue/5' : 'border-brand-blue/10 hover:border-brand-blue/30'}`}>
-                      <input type="radio" name="paymentMethod" value="gcash" checked={paymentDetails.method === 'gcash'} onChange={() => setPaymentDetails({...paymentDetails, method: 'gcash'})} className="h-4 w-4 text-brand-blue" />
-                      <span className="font-medium">GCash</span>
-                    </label>
-                    <label className={`flex cursor-pointer items-center gap-3 rounded-xl border p-4 transition ${paymentDetails.method === 'bank' ? 'border-brand-blue bg-brand-blue/5' : 'border-brand-blue/10 hover:border-brand-blue/30'}`}>
-                      <input type="radio" name="paymentMethod" value="bank" checked={paymentDetails.method === 'bank'} onChange={() => setPaymentDetails({...paymentDetails, method: 'bank'})} className="h-4 w-4 text-brand-blue" />
-                      <span className="font-medium">Bank Transfer</span>
-                    </label>
-                  </div>
-                </div>
-
-                {/* Payment Details Display */}
-                {paymentDetails.method === 'gcash' && (
-                  <div className="rounded-2xl border border-brand-blue/10 bg-white p-6 shadow-sm flex flex-col sm:flex-row gap-6 items-center sm:items-start">
-                    <div className="w-32 h-32 flex-shrink-0 bg-slate-50 rounded-xl overflow-hidden border border-brand-blue/10 shadow-sm">
-                      <img src="/img/payment/gcash.jpg" alt="GCash QR Code" className="w-full h-full object-cover" />
+                {selectedRoomId !== 3 ? (
+                  <>
+                    <div className="space-y-4">
+                      <p className="text-sm font-semibold uppercase tracking-wider text-brand-blue/60">1. Select Payment Method</p>
+                      <div className="grid sm:grid-cols-2 gap-4">
+                        <label className={`flex cursor-pointer items-center gap-3 rounded-xl border p-4 transition ${paymentDetails.method === 'gcash' ? 'border-brand-blue bg-brand-blue/5' : 'border-brand-blue/10 hover:border-brand-blue/30'}`}>
+                          <input type="radio" name="paymentMethod" value="gcash" checked={paymentDetails.method === 'gcash'} onChange={() => setPaymentDetails({...paymentDetails, method: 'gcash'})} className="h-4 w-4 text-brand-blue" />
+                          <span className="font-medium">GCash</span>
+                        </label>
+                        <label className={`flex cursor-pointer items-center gap-3 rounded-xl border p-4 transition ${paymentDetails.method === 'bank' ? 'border-brand-blue bg-brand-blue/5' : 'border-brand-blue/10 hover:border-brand-blue/30'}`}>
+                          <input type="radio" name="paymentMethod" value="bank" checked={paymentDetails.method === 'bank'} onChange={() => setPaymentDetails({...paymentDetails, method: 'bank'})} className="h-4 w-4 text-brand-blue" />
+                          <span className="font-medium">Bank Transfer</span>
+                        </label>
+                      </div>
                     </div>
-                    <div className="space-y-2 text-center sm:text-left">
-                      <h3 className="font-semibold text-brand-blue text-lg">GCash Details</h3>
-                      <p className="text-brand-blue/80"><span className="font-semibold text-brand-blue">Name:</span> Hermilino Jr. Calubiran</p>
-                      <p className="text-brand-blue/80"><span className="font-semibold text-brand-blue">Number:</span> +63 917 887 6444</p>
-                      <p className="text-xs text-brand-blue/60 mt-2">Please scan the QR code or send to the number provided to complete your reservation payment.</p>
-                    </div>
-                  </div>
-                )}
 
-                {paymentDetails.method === 'bank' && (
-                  <div className="rounded-2xl border border-brand-blue/10 bg-white p-6 shadow-sm space-y-3">
-                    <h3 className="font-semibold text-brand-blue text-lg">Bank Transfer Details</h3>
-                    <p className="text-brand-blue/80"><span className="font-semibold text-brand-blue">Bank:</span> BDO Unibank, Inc.</p>
-                    <p className="text-brand-blue/80"><span className="font-semibold text-brand-blue">Account Name:</span> Hermilino Calubiran, Jr.</p>
-                    <p className="text-brand-blue/80"><span className="font-semibold text-brand-blue">Account Number:</span> 010100143296</p>
-                    <p className="text-xs text-brand-blue/60 mt-2">Please transfer the total amount to the bank account provided.</p>
+                    {/* Payment Details Display */}
+                    {paymentDetails.method === 'gcash' && (
+                      <div className="rounded-2xl border border-brand-blue/10 bg-white p-6 shadow-sm flex flex-col sm:flex-row gap-6 items-center sm:items-start">
+                        <div className="w-32 h-32 flex-shrink-0 bg-slate-50 rounded-xl overflow-hidden border border-brand-blue/10 shadow-sm">
+                          <img src="/img/payment/gcash.jpg" alt="GCash QR Code" className="w-full h-full object-cover" />
+                        </div>
+                        <div className="space-y-2 text-center sm:text-left">
+                          <h3 className="font-semibold text-brand-blue text-lg">GCash Details</h3>
+                          <p className="text-brand-blue/80"><span className="font-semibold text-brand-blue">Name:</span> Hermilino Jr. Calubiran</p>
+                          <p className="text-brand-blue/80"><span className="font-semibold text-brand-blue">Number:</span> +63 917 887 6444</p>
+                          <p className="text-xs text-brand-blue/60 mt-2">Please scan the QR code or send to the number provided to complete your reservation payment.</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {paymentDetails.method === 'bank' && (
+                      <div className="rounded-2xl border border-brand-blue/10 bg-white p-6 shadow-sm space-y-3">
+                        <h3 className="font-semibold text-brand-blue text-lg">Bank Transfer Details</h3>
+                        <p className="text-brand-blue/80"><span className="font-semibold text-brand-blue">Bank:</span> BDO Unibank, Inc.</p>
+                        <p className="text-brand-blue/80"><span className="font-semibold text-brand-blue">Account Name:</span> Hermilino Calubiran, Jr.</p>
+                        <p className="text-brand-blue/80"><span className="font-semibold text-brand-blue">Account Number:</span> 010100143296</p>
+                        <p className="text-xs text-brand-blue/60 mt-2">Please transfer the total amount to the bank account provided.</p>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="space-y-4">
+                    <p className="text-sm font-semibold uppercase tracking-wider text-brand-blue/60">1. Event Purpose & Details <span className="text-red-500">*</span></p>
+                    <div className="rounded-xl border border-brand-blue/10 bg-white p-4">
+                      <p className="text-xs text-brand-blue/60 mb-3">Because Rooftop Lounge pricing depends on the event type, please specify the purpose of your booking (e.g., Birthday Party, Corporate Meeting, casual hangout) and any specific setup requirements.</p>
+                      <textarea 
+                        value={purpose}
+                        onChange={(e) => setPurpose(e.target.value)}
+                        rows={4}
+                        className="w-full rounded-xl border border-brand-blue/10 bg-brand-blue/5 px-4 py-3 outline-none focus:border-brand-blue transition resize-none"
+                        placeholder="E.g. A small birthday gathering for 15 people..."
+                      ></textarea>
+                    </div>
                   </div>
                 )}
 
                 <div className="space-y-6">
                   <p className="text-sm font-semibold uppercase tracking-wider text-brand-blue/60">2. Upload Requirements <span className="text-red-500">*</span></p>
                   
-                  <div className="rounded-xl border border-brand-blue/10 p-4">
-                    <p className="block font-medium mb-1">Payment Screenshot</p>
-                    <p className="text-xs text-brand-blue/60 mb-3">Please upload a clear screenshot of your successful transaction.</p>
-                    <div className="flex items-center gap-3">
-                      <label className="cursor-pointer rounded-full bg-brand-blue/10 px-4 py-2 text-xs font-semibold text-brand-blue transition hover:bg-brand-blue/20">
-                        Choose File
-                        <input type="file" accept="image/*" onChange={e => setPaymentDetails({...paymentDetails, proof: e.target.files?.[0] || null})} className="hidden" />
-                      </label>
-                      <span className="text-sm text-brand-blue/70">{paymentDetails.proof ? paymentDetails.proof.name : <span className="text-red-500 text-lg leading-none">*</span>}</span>
+                  {selectedRoomId !== 3 && (
+                    <div className="rounded-xl border border-brand-blue/10 p-4">
+                      <p className="block font-medium mb-1">Payment Screenshot</p>
+                      <p className="text-xs text-brand-blue/60 mb-3">Please upload a clear screenshot of your successful transaction.</p>
+                      <div className="flex items-center gap-3">
+                        <label className="cursor-pointer rounded-full bg-brand-blue/10 px-4 py-2 text-xs font-semibold text-brand-blue transition hover:bg-brand-blue/20">
+                          Choose File
+                          <input type="file" accept="image/*" onChange={e => setPaymentDetails({...paymentDetails, proof: e.target.files?.[0] || null})} className="hidden" />
+                        </label>
+                        <span className="text-sm text-brand-blue/70">{paymentDetails.proof ? paymentDetails.proof.name : <span className="text-red-500 text-lg leading-none">*</span>}</span>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   <div className="rounded-xl border border-brand-blue/10 p-4">
                     <p className="block font-medium mb-1">Valid ID (Front)</p>
