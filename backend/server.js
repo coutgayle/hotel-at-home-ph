@@ -65,6 +65,22 @@ app.post('/api/bookings', async (req, res) => {
       checkIn, checkOut, totalPrice
     } = req.body;
 
+    // --- OVERLAP VALIDATION ---
+    // Check if the chosen dates have been booked by someone else
+    let overlapQuery = "SELECT id FROM bookings WHERE room_id = ? AND status != 'Cancelled' AND check_in < ? AND check_out > ?";
+    let overlapParams = [roomId, checkOut, checkIn];
+
+    // If Rooftop Lounge (ID 3), check if ANY room is booked during these dates
+    if (parseInt(roomId) === 3) {
+      overlapQuery = "SELECT id FROM bookings WHERE status != 'Cancelled' AND check_in < ? AND check_out > ?";
+      overlapParams = [checkOut, checkIn];
+    }
+
+    const [overlaps] = await pool.query(overlapQuery, overlapParams);
+    if (overlaps.length > 0) {
+      return res.status(400).json({ error: 'These dates have just been booked. Please select different dates.' });
+    }
+
     // Generate a random confirmation code (e.g., HH-A1B2C3)
     const confirmationCode = 'HH-' + Math.random().toString(36).substring(2, 8).toUpperCase();
 
@@ -131,11 +147,17 @@ app.get('/api/bookings/:code', async (req, res) => {
 app.get('/api/bookings/dates/:roomId', async (req, res) => {
   try {
     const { roomId } = req.params;
-    // Fetch all bookings for this room that aren't cancelled
-    const [rows] = await pool.query(
-      "SELECT check_in, check_out FROM bookings WHERE room_id = ? AND status != 'Cancelled'", 
-      [roomId]
-    );
+    
+    let query = "SELECT check_in, check_out FROM bookings WHERE room_id = ? AND status != 'Cancelled'";
+    let queryParams = [roomId];
+
+    // If Rooftop Lounge (ID 3) is selected, block dates if Gold (1), Blue (2), or Rooftop (3) is booked
+    if (parseInt(roomId) === 3) {
+      query = "SELECT check_in, check_out FROM bookings WHERE status != 'Cancelled'";
+      queryParams = [];
+    }
+
+    const [rows] = await pool.query(query, queryParams);
     res.json(rows);
   } catch (error) {
     console.error('Error fetching blocked dates:', error);
