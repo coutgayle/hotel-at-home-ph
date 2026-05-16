@@ -200,9 +200,12 @@ app.get('*', (req, res) => {
   // Catch trailing slashes and direct matches to ensure Next.js pages load reliably
   let reqPath = req.path.endsWith('/') && req.path.length > 1 ? req.path.slice(0, -1) : req.path;
   const htmlPath = path.join(frontendOutPath, `${reqPath}.html`);
+  const indexPath = path.join(frontendOutPath, reqPath, 'index.html');
   
   if (fs.existsSync(htmlPath)) {
     return res.sendFile(htmlPath);
+  } else if (fs.existsSync(indexPath)) {
+    return res.sendFile(indexPath);
   }
 
   const notFoundPath = path.join(frontendOutPath, '404.html');
