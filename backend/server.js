@@ -68,11 +68,14 @@ app.post('/api/bookings', async (req, res) => {
     // Generate a random confirmation code (e.g., HH-A1B2C3)
     const confirmationCode = 'HH-' + Math.random().toString(36).substring(2, 8).toUpperCase();
 
+    // Safe fallback in case a room like Rooftop Lounge has a null/TBA price
+    const finalPrice = totalPrice || 0;
+
     const [result] = await pool.query(
       `INSERT INTO bookings 
       (confirmation_code, room_id, guest_first_name, guest_last_name, guest_email, guest_phone, check_in, check_out, total_price) 
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [confirmationCode, roomId, guestFirstName, guestLastName, guestEmail, guestPhone, checkIn, checkOut, totalPrice]
+      [confirmationCode, roomId, guestFirstName, guestLastName, guestEmail, guestPhone, checkIn, checkOut, finalPrice]
     );
 
     // Send Email Notifications (Async, so it doesn't block the response if it fails)
@@ -102,7 +105,8 @@ app.post('/api/bookings', async (req, res) => {
     res.status(201).json({ success: true, confirmationCode, bookingId: result.insertId });
   } catch (error) {
     console.error('Error creating booking:', error);
-    res.status(500).json({ error: 'Failed to create booking' });
+    // Expose the exact database error so we know exactly what is failing
+    res.status(500).json({ error: error.message || 'Database error occurred' });
   }
 });
 
