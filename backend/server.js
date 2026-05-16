@@ -204,16 +204,21 @@ app.get('*', (req, res) => {
   const fs = require('fs');
   
   // Catch trailing slashes and direct matches to ensure Next.js pages load reliably
-  let reqPath = req.path.endsWith('/') && req.path.length > 1 ? req.path.slice(0, -1) : req.path;
-  const htmlPath = path.join(frontendOutPath, `${reqPath}.html`);
-  const indexPath = path.join(frontendOutPath, reqPath, 'index.html');
-  
-  if (fs.existsSync(htmlPath)) {
-    return res.sendFile(htmlPath);
-  } else if (fs.existsSync(indexPath)) {
-    return res.sendFile(indexPath);
+  let requestedPath = req.path;
+  // If path is like /view-booking/, try to find /view-booking/index.html
+  if (requestedPath.endsWith('/') && requestedPath.length > 1) {
+    requestedPath = requestedPath.slice(0, -1);
   }
 
+  const targetHtmlFile = path.join(frontendOutPath, requestedPath, 'index.html'); // e.g., /view-booking/index.html
+  const targetRootFile = path.join(frontendOutPath, `${requestedPath}.html`); // e.g., /view-booking.html (fallback)
+  
+  if (fs.existsSync(targetHtmlFile)) {
+    return res.sendFile(targetHtmlFile);
+  } else if (fs.existsSync(targetRootFile)) { // For root files like 404.html if directly requested
+    return res.sendFile(targetRootFile);
+  }
+  
   const notFoundPath = path.join(frontendOutPath, '404.html');
   res.status(404).sendFile(notFoundPath, (err) => {
     if (err) {

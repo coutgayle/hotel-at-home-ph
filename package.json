@@ -4,7 +4,7 @@
   "private": true,
   "main": "app.js",
   "scripts": {
-    "postinstall": "npm install --prefix frontend --no-audit --no-fund --loglevel=error && npm install --prefix backend --no-audit --no-fund --loglevel=error && npm run build --prefix frontend",
+    "postinstall": "npm install --prefix frontend --no-audit --no-fund --loglevel=error && npm install --prefix backend --no-audit --no-fund --loglevel=error",
     "build": "npm run build --prefix frontend",
     "start": "node app.js"
   }
