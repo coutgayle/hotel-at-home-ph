@@ -200,7 +200,7 @@ function SmartCalendar({
 }
 
 function ProgressBar({ currentStep }: { currentStep: number }) {
-  const steps = ["Room", "Dates", "Add-ons", "Guests", "Payment", "Rules"];
+  const steps = ["Room", "Dates", "Guests", "Payment", "Rules"];
   
   return (
     <div className="mb-12 relative w-full max-w-3xl mx-auto">
@@ -328,15 +328,15 @@ function BookNowContent() {
     }
   }
 
-  const isStep4Valid = guestDetails.firstName && guestDetails.lastName && guestDetails.email && guestDetails.phone;
-  const isStep5Valid = paymentDetails.idFront && paymentDetails.idBack && paymentDetails.proof;
+  const isStep3Valid = guestDetails.firstName && guestDetails.lastName && guestDetails.email && guestDetails.phone;
+  const isStep4Valid = paymentDetails.idFront && paymentDetails.idBack && paymentDetails.proof;
 
   const handleNext = () => {
     if (currentStep === 1 && !selectedRoomId) return;
     if (currentStep === 2 && (!checkIn || !checkOut)) return;
+    if (currentStep === 3 && !isStep3Valid) return;
     if (currentStep === 4 && !isStep4Valid) return;
-    if (currentStep === 5 && !isStep5Valid) return;
-    if (currentStep === 6) {
+    if (currentStep === 5) {
       if (!agreedToRules) return;
       
       setIsSubmitting(true);
@@ -379,7 +379,7 @@ function BookNowContent() {
       submitBooking();
       return;
     }
-    setCurrentStep(prev => Math.min(prev + 1, 6));
+    setCurrentStep(prev => Math.min(prev + 1, 5));
   };
 
   const handlePrev = () => setCurrentStep(prev => Math.max(prev - 1, 1));
@@ -597,21 +597,8 @@ function BookNowContent() {
               </div>
             )}
 
-            {/* STEP 3: Add-ons (Placeholder) */}
+            {/* STEP 3: Guest Details */}
             {currentStep === 3 && (
-              <div className="py-20 text-center space-y-4 border-2 border-dashed border-brand-blue/10 rounded-2xl">
-                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-12 h-12 mx-auto text-brand-blue/30">
-                   <path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.827M11.42 15.17l-3.973 3.973c-.637.636-1.748.636-2.384 0l-1.06-1.06c-.636-.637-.636-1.748 0-2.385l3.973-3.972M11.42 15.17l3.972-3.973M11.42 15.17c-2.839-2.839-2.839-7.442 0-10.281 2.84-2.84 7.443-2.84 10.282 0M6.084 10.334a1.868 1.868 0 11-2.64-2.641 1.868 1.868 0 012.64 2.641z" />
-                 </svg>
-                 <h2 className="text-xl font-semibold">Under Construction</h2>
-                 <p className="text-brand-blue/60 text-sm max-w-sm mx-auto">
-                   Add-ons functionality will be available soon. You can proceed to the next step.
-                 </p>
-              </div>
-            )}
-
-            {/* STEP 4: Guest Details */}
-            {currentStep === 4 && (
               <div className="space-y-6">
                 <h2 className="text-2xl font-semibold">Guest Details</h2>
                 <div className="grid gap-6 sm:grid-cols-2">
@@ -635,8 +622,8 @@ function BookNowContent() {
               </div>
             )}
 
-            {/* STEP 5: Payment */}
-            {currentStep === 5 && (
+            {/* STEP 4: Payment */}
+            {currentStep === 4 && (
               <div className="space-y-8">
                 <h2 className="text-2xl font-semibold">Payment & Verification</h2>
                 
@@ -721,8 +708,8 @@ function BookNowContent() {
               </div>
             )}
 
-            {/* STEP 6: Rules & Regulations */}
-            {currentStep === 6 && (
+            {/* STEP 5: Rules & Regulations */}
+            {currentStep === 5 && (
               <div className="space-y-8">
                 <h2 className="text-2xl font-semibold">Rules & Regulations</h2>
                 
@@ -787,17 +774,17 @@ function BookNowContent() {
                 disabled={
                   (currentStep === 1 && !selectedRoomId) ||
                   (currentStep === 2 && (!checkIn || !checkOut || isCheckingDates || !datesAvailable)) ||
+                  (currentStep === 3 && !isStep3Valid) ||
                   (currentStep === 4 && !isStep4Valid) ||
-                  (currentStep === 5 && !isStep5Valid) ||
-                  (currentStep === 6 && (!agreedToRules || isSubmitting))
+                  (currentStep === 5 && (!agreedToRules || isSubmitting))
                 }
                 className={`px-8 py-2.5 rounded-full font-semibold text-sm transition ${
-                  ((currentStep === 1 && !selectedRoomId) || (currentStep === 2 && (!checkIn || !checkOut || isCheckingDates || !datesAvailable)) || (currentStep === 4 && !isStep4Valid) || (currentStep === 5 && !isStep5Valid) || (currentStep === 6 && (!agreedToRules || isSubmitting)))
+                  ((currentStep === 1 && !selectedRoomId) || (currentStep === 2 && (!checkIn || !checkOut || isCheckingDates || !datesAvailable)) || (currentStep === 3 && !isStep3Valid) || (currentStep === 4 && !isStep4Valid) || (currentStep === 5 && (!agreedToRules || isSubmitting)))
                     ? 'bg-brand-blue/30 text-white cursor-not-allowed'
                     : 'bg-brand-blue text-white hover:bg-[#001a72] shadow-sm'
                 }`}
               >
-                {currentStep === 6 ? (isSubmitting ? 'Confirming...' : 'Confirm Booking') : 'Continue'}
+                {currentStep === 5 ? (isSubmitting ? 'Confirming...' : 'Confirm Booking') : 'Continue'}
               </button>
             </div>
           </div>
