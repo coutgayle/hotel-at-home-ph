@@ -654,6 +654,31 @@ function BookNowContent() {
                   </div>
                 </div>
 
+                {/* Payment Details Display */}
+                {paymentDetails.method === 'gcash' && (
+                  <div className="rounded-2xl border border-brand-blue/10 bg-white p-6 shadow-sm flex flex-col sm:flex-row gap-6 items-center sm:items-start">
+                    <div className="w-32 h-32 flex-shrink-0 bg-slate-50 rounded-xl overflow-hidden border border-brand-blue/10 shadow-sm">
+                      <img src="/img/payment/gcash.jpg" alt="GCash QR Code" className="w-full h-full object-cover" />
+                    </div>
+                    <div className="space-y-2 text-center sm:text-left">
+                      <h3 className="font-semibold text-brand-blue text-lg">GCash Details</h3>
+                      <p className="text-brand-blue/80"><span className="font-semibold text-brand-blue">Name:</span> Hermilino Jr. Calubiran</p>
+                      <p className="text-brand-blue/80"><span className="font-semibold text-brand-blue">Number:</span> +63 917 887 6444</p>
+                      <p className="text-xs text-brand-blue/60 mt-2">Please scan the QR code or send to the number provided to complete your reservation payment.</p>
+                    </div>
+                  </div>
+                )}
+
+                {paymentDetails.method === 'bank' && (
+                  <div className="rounded-2xl border border-brand-blue/10 bg-white p-6 shadow-sm space-y-3">
+                    <h3 className="font-semibold text-brand-blue text-lg">Bank Transfer Details</h3>
+                    <p className="text-brand-blue/80"><span className="font-semibold text-brand-blue">Bank:</span> BDO Unibank, Inc.</p>
+                    <p className="text-brand-blue/80"><span className="font-semibold text-brand-blue">Account Name:</span> Hermilino Calubiran, Jr.</p>
+                    <p className="text-brand-blue/80"><span className="font-semibold text-brand-blue">Account Number:</span> 010100143296</p>
+                    <p className="text-xs text-brand-blue/60 mt-2">Please transfer the total amount to the bank account provided.</p>
+                  </div>
+                )}
+
                 <div className="space-y-6">
                   <p className="text-sm font-semibold uppercase tracking-wider text-brand-blue/60">2. Upload Requirements *</p>
                   
