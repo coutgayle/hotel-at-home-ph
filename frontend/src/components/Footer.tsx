@@ -37,10 +37,14 @@ export default function Footer() {
                 </a>
               </li>
               <li>
-                <a href="tel:+639278584938" className="transition hover:text-[#f9cd2a]">+63 927 858 4938</a>
+                <a href="tel:+639278584938" className="transition hover:text-[#f9cd2a]">
+                  +63 927 858 4938
+                </a>
               </li>
               <li>
-                <a href="tel:+639178876444" className="transition hover:text-[#f9cd2a]">+63 917 887 6444</a>
+                <a href="tel:+639178876444" className="transition hover:text-[#f9cd2a]">
+                  +63 917 887 6444
+                </a>
               </li>
             </ul>
           </div>
