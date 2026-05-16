@@ -171,7 +171,7 @@ export default function Home() {
           <div className="grid gap-8 lg:grid-cols-2">
             <article className="overflow-hidden rounded-[32px] border border-brand-blue/10 bg-brand-white shadow-md shadow-brand-blue/5">
               <div className="h-80 w-full overflow-hidden bg-slate-100">
-                <img src="/img/rooftop/rooftop8.jpg" alt="Luxury Accommodations" className="h-full w-full object-cover" />
+                <img src="/img/blue-room/blue11.jpg" alt="Luxury Accommodations" className="h-full w-full object-cover" />
               </div>
               <div className="p-8">
                 <h3 className="text-2xl font-semibold text-brand-blue">Luxury Accommodations</h3>
@@ -198,7 +198,7 @@ export default function Home() {
               <div className="p-8">
                 <h3 className="text-2xl font-semibold text-brand-blue">Our Location</h3>
                 <p className="mt-4 text-brand-blue/70">
-                  Located in Amadeo, Cavite, Hotel at Home is close to beaches, dining, and scenic leisure spots.
+                  Located in Amadeo, Cavite, Hotel at Home is close to dining and scenic leisure spots.
                 </p>
                 <div className="mt-6 flex items-center gap-3 text-sm text-brand-blue/70">
                   <span className="inline-flex items-center justify-center rounded-full bg-brand-blue/10 p-3 text-brand-blue">

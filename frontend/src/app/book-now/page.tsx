@@ -8,17 +8,17 @@ const mockRooms = [
   { 
     id: 1, name: 'Gold Room', price: 4800, weekendPrice: 5300, capacity: 2, image: '/img/gold-room/gold1.jpg',
     imagesCount: 15, folder: 'gold-room', prefix: 'gold',
-    features: ['50 SQM', 'Ideal for 2 guests', '1 King size bed', '1 Bathroom', '4-Seater Dining Table', 'Kitchen cabinet with sink', 'Personal Ref', 'Air conditioning and WiFi', '55" Smart TV with Bluetooth Speaker', 'Electric Kettle', 'Toiletries, towels, and bathrobe', 'Contemporary artwork', 'Parking space'] 
+    features: ['50 SQM', 'Ideal for 2 guests', '1 King size bed', '1 Bathroom', '4-Seater Dining Table', 'Kitchen cabinet with sink', 'Personal Ref', 'Air conditioning and WiFi', '55" Smart TV with Bluetooth Speaker', 'Toiletries, towels, and bathrobe', 'Contemporary artwork', 'Parking space'] 
   },
   { 
     id: 2, name: 'Blue Room', price: 4800, weekendPrice: 5300, capacity: 4, image: '/img/blue-room/blue1.jpg',
     imagesCount: 13, folder: 'blue-room', prefix: 'blue',
-    features: ['50 SQM', 'Ideal for 4 guests', '2 Queen size beds', '1 Bathroom', '6-Seater Dining Table', 'Kitchen cabinet with sink', 'Personal Ref', 'Air conditioning and WiFi', '55" Smart TV with DVD speaker', 'Electric Kettle', 'Toiletries, towels, and bathrobe', 'Contemporary artwork', 'Parking space'] 
+    features: ['50 SQM', 'Ideal for 4 guests', '2 Queen size beds', '1 Bathroom', '6-Seater Dining Table', 'Kitchen cabinet with sink', 'Personal Ref', 'Air conditioning and WiFi', '55" Smart TV with Bluetooth speaker', 'Toiletries, towels, and bathrobe', 'Contemporary artwork', 'Parking space'] 
   },
   { 
     id: 3, name: 'Rooftop Lounge', price: null, weekendPrice: null, capacity: 20, image: '/img/rooftop/rooftop1.jpg',
     imagesCount: 13, folder: 'rooftop', prefix: 'rooftop',
-    features: ['150 SQM', 'Outdoor and indoor seating', 'Bar counter', 'Dining table setup', 'Air conditioning and WiFi', '65" Smart TV with DVD speaker', 'Microphone for Karaoke - available upon request', 'Contemporary artwork'] 
+    features: ['150 SQM', 'Outdoor and indoor seating', 'Bar counter', 'Dining table setup', 'Air conditioning and WiFi', '65" Smart TV with Bluetooth speaker', 'Microphone for Karaoke - available upon request', 'Contemporary artwork'] 
   },
 ];
 
@@ -329,7 +329,7 @@ function BookNowContent() {
   }
 
   const isStep4Valid = guestDetails.firstName && guestDetails.lastName && guestDetails.email && guestDetails.phone;
-  const isStep5Valid = paymentDetails.idFront && paymentDetails.idBack && (paymentDetails.method === 'cash' || paymentDetails.proof);
+  const isStep5Valid = paymentDetails.idFront && paymentDetails.idBack && paymentDetails.proof;
 
   const handleNext = () => {
     if (currentStep === 1 && !selectedRoomId) return;
@@ -642,7 +642,7 @@ function BookNowContent() {
                 
                 <div className="space-y-4">
                   <p className="text-sm font-semibold uppercase tracking-wider text-brand-blue/60">1. Select Payment Method</p>
-                  <div className="grid sm:grid-cols-3 gap-4">
+                  <div className="grid sm:grid-cols-2 gap-4">
                     <label className={`flex cursor-pointer items-center gap-3 rounded-xl border p-4 transition ${paymentDetails.method === 'gcash' ? 'border-brand-blue bg-brand-blue/5' : 'border-brand-blue/10 hover:border-brand-blue/30'}`}>
                       <input type="radio" name="paymentMethod" value="gcash" checked={paymentDetails.method === 'gcash'} onChange={() => setPaymentDetails({...paymentDetails, method: 'gcash'})} className="h-4 w-4 text-brand-blue" />
                       <span className="font-medium">GCash</span>
@@ -651,23 +651,17 @@ function BookNowContent() {
                       <input type="radio" name="paymentMethod" value="bank" checked={paymentDetails.method === 'bank'} onChange={() => setPaymentDetails({...paymentDetails, method: 'bank'})} className="h-4 w-4 text-brand-blue" />
                       <span className="font-medium">Bank Transfer</span>
                     </label>
-                    <label className={`flex cursor-pointer items-center gap-3 rounded-xl border p-4 transition ${paymentDetails.method === 'cash' ? 'border-brand-blue bg-brand-blue/5' : 'border-brand-blue/10 hover:border-brand-blue/30'}`}>
-                      <input type="radio" name="paymentMethod" value="cash" checked={paymentDetails.method === 'cash'} onChange={() => setPaymentDetails({...paymentDetails, method: 'cash'})} className="h-4 w-4 text-brand-blue" />
-                      <span className="font-medium">Cash on Arrival</span>
-                    </label>
                   </div>
                 </div>
 
                 <div className="space-y-6">
                   <p className="text-sm font-semibold uppercase tracking-wider text-brand-blue/60">2. Upload Requirements *</p>
                   
-                  {paymentDetails.method !== 'cash' && (
-                    <div className="rounded-xl border border-brand-blue/10 p-4">
-                      <label className="block font-medium mb-1">Payment Screenshot</label>
-                      <p className="text-xs text-brand-blue/60 mb-3">Please upload a clear screenshot of your successful transaction.</p>
-                      <input type="file" accept="image/*" onChange={e => setPaymentDetails({...paymentDetails, proof: e.target.files?.[0] || null})} className="w-full text-sm text-brand-blue/70 file:mr-4 file:rounded-full file:border-0 file:bg-brand-blue/10 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-brand-blue hover:file:bg-brand-blue/20" />
-                    </div>
-                  )}
+                  <div className="rounded-xl border border-brand-blue/10 p-4">
+                    <label className="block font-medium mb-1">Payment Screenshot</label>
+                    <p className="text-xs text-brand-blue/60 mb-3">Please upload a clear screenshot of your successful transaction.</p>
+                    <input type="file" accept="image/*" onChange={e => setPaymentDetails({...paymentDetails, proof: e.target.files?.[0] || null})} className="w-full text-sm text-brand-blue/70 file:mr-4 file:rounded-full file:border-0 file:bg-brand-blue/10 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-brand-blue hover:file:bg-brand-blue/20" />
+                  </div>
 
                   <div className="rounded-xl border border-brand-blue/10 p-4">
                     <label className="block font-medium mb-1">Valid ID (Front)</label>

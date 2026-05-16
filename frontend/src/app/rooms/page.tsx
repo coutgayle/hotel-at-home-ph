@@ -117,7 +117,6 @@ function GoldRoomCard() {
           <div className="space-y-2">
             <p>Air conditioning and WiFi</p>
             <p>55&quot; Smart TV with Bluetooth Speaker</p>
-            <p>Electric Kettle</p>
             <p>Toiletries, towels, and bathrobe</p>
             <p>Contemporary artwork</p>
             <p>Parking space</p>
@@ -198,8 +197,7 @@ function BlueRoomCard() {
           </div>
           <div className="space-y-2">
             <p>Air conditioning and WiFi</p>
-            <p>55&quot; Smart TV with DVD speaker</p>
-            <p>Electric Kettle</p>
+            <p>55&quot; Smart TV with Bluetooth speaker</p>
             <p>Toiletries, towels, and bathrobe</p>
             <p>Contemporary artwork</p>
             <p>Parking space</p>
@@ -280,7 +278,7 @@ function RooftopCard() {
           </div>
           <div className="space-y-2">
             <p>Air conditioning and WiFi</p>
-            <p>65&quot; Smart TV with DVD speaker</p>
+            <p>65&quot; Smart TV with Bluetooth speaker</p>
             <p>Microphone for Karaoke - available upon request</p>
             <p>Contemporary artwork</p>
           </div>

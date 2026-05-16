@@ -16,7 +16,7 @@ const faqs = [
   {
     question: 'What is the set-up of the building?',
     answer:
-      'The building is a mixed-use private property. The rented rooms are located on the third floor of a walk-up building (no elevator). The rooftop lounge is located on the fourth floor. Our guests appreciate the added privacy this elevated location provides.'
+      'The building is a mixed-used residential and commercial property. The rented rooms are located on the third floor of a walk-up building (no elevator). The rooftop lounge is located on the fourth floor. Our guests appreciate the added privacy this elevated location provides.'
   },
   {
     question: 'How far is the place from Tagaytay?',
@@ -37,7 +37,7 @@ const faqs = [
         Personal refrigerator<br />
         Aircon<br />
         Wi-fi<br />
-        55” Smart TV with DVD Speaker<br />
+        55” Smart TV with Bluetooth Speaker<br />
         Hot Shower<br />
         Humidifier<br />
         Flat Iron and Ironing Board, steamer – available upon request<br />
@@ -45,7 +45,7 @@ const faqs = [
         <strong>Rooftop Lounge</strong><br />
         Dining area – Indoor and outdoor<br />
         Wine and liquor – By pre-order upon check in. Outside alcoholic drinks are subject to ₱500 corkage fee per bottle (wine/liquor)<br />
-        65” Smart TV with DVD speaker<br />
+        65” Smart TV with Bluetooth speaker<br />
         Microphone for Karaoke – by request
       </>
     )
