@@ -2,9 +2,10 @@
   "name": "hotel-at-home-root",
   "version": "1.0.0",
   "private": true,
+  "main": "server.js",
   "scripts": {
     "postinstall": "npm install --prefix frontend --no-audit --no-fund --loglevel=error && npm install --prefix backend --no-audit --no-fund --loglevel=error && npm run build --prefix frontend",
     "build": "npm run build --prefix frontend",
-    "start": "npm start --prefix backend"
+    "start": "node server.js"
   }
 }

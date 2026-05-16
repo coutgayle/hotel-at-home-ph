@@ -145,7 +145,13 @@ app.use(express.static(path.join(__dirname, '../frontend/out'), { extensions: ['
 
 // Catch-all handler to ensure client-side routing works for Next.js
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/out/index.html'));
+  const indexPath = path.join(__dirname, '../frontend/out/index.html');
+  res.sendFile(indexPath, (err) => {
+    if (err) {
+      console.error('Frontend file missing:', err);
+      res.status(500).send('<div style="font-family: sans-serif; text-align: center; margin-top: 50px;"><h2>Website is updating...</h2><p>The server is running, but the frontend is still compiling. Please refresh this page in a minute.</p></div>');
+    }
+  });
 });
 
 const PORT = process.env.PORT || 4000;
