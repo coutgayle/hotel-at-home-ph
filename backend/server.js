@@ -68,12 +68,12 @@ app.post('/api/bookings', async (req, res) => {
     // --- OVERLAP VALIDATION ---
     // Check if the chosen dates have been booked by someone else
     // If Gold or Blue room is selected, also check if the Rooftop Lounge (ID 3) is already booked
-    let overlapQuery = "SELECT id FROM bookings WHERE (room_id = ? OR room_id = 3) AND status != 'Cancelled' AND check_in < ? AND check_out > ?";
+    let overlapQuery = "SELECT id FROM bookings WHERE (room_id = ? OR room_id = 3) AND status != 'cancelled' AND check_in < ? AND check_out > ?";
     let overlapParams = [roomId, checkOut, checkIn];
 
     // If Rooftop Lounge (ID 3), check if ANY room is booked during these dates
     if (parseInt(roomId) === 3) {
-      overlapQuery = "SELECT id FROM bookings WHERE status != 'Cancelled' AND check_in < ? AND check_out > ?";
+      overlapQuery = "SELECT id FROM bookings WHERE status != 'cancelled' AND check_in < ? AND check_out > ?";
       overlapParams = [checkOut, checkIn];
     }
 
@@ -156,12 +156,12 @@ app.get('/api/bookings/dates/:roomId', async (req, res) => {
     const { roomId } = req.params;
     
     // If Gold or Blue room is selected, fetch dates where this room OR the Rooftop Lounge is booked
-    let query = "SELECT check_in, check_out FROM bookings WHERE (room_id = ? OR room_id = 3) AND status != 'Cancelled'";
+    let query = "SELECT check_in, check_out FROM bookings WHERE (room_id = ? OR room_id = 3) AND status != 'cancelled'";
     let queryParams = [roomId];
 
     // If Rooftop Lounge (ID 3) is selected, block dates if Gold (1), Blue (2), or Rooftop (3) is booked
     if (parseInt(roomId) === 3) {
-      query = "SELECT check_in, check_out FROM bookings WHERE status != 'Cancelled'";
+      query = "SELECT check_in, check_out FROM bookings WHERE status != 'cancelled'";
       queryParams = [];
     }
 

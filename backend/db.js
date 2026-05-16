@@ -9,7 +9,8 @@ const pool = mysql.createPool({
   database: process.env.DB_NAME || 'hotel_at_home',
   waitForConnections: true,
   connectionLimit: 10,
-  queueLimit: 0
+  queueLimit: 0,
+  dateStrings: true
 });
 
 module.exports = pool;
