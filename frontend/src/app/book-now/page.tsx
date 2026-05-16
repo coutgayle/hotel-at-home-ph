@@ -374,7 +374,8 @@ function BookNowContent() {
               checkIn: checkIn ? formatDate(checkIn) : null,
               checkOut: checkOut ? formatDate(checkOut) : null,
               totalPrice: roomTotal,
-              purpose: purpose
+              purpose: purpose,
+              guests: guests
             }),
           });
           
