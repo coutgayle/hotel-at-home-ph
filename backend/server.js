@@ -141,7 +141,7 @@ app.get('/api/bookings/dates/:roomId', async (req, res) => {
 
 // --- SERVE FRONTEND WEBSITE ---
 // Serve the static files from the Next.js 'out' directory
-app.use(express.static(path.join(__dirname, '../frontend/out')));
+app.use(express.static(path.join(__dirname, '../frontend/out'), { extensions: ['html'] }));
 
 // Catch-all handler to ensure client-side routing works for Next.js
 app.get('*', (req, res) => {
