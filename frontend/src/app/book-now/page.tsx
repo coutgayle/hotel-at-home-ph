@@ -75,7 +75,8 @@ function SmartCalendar({
 
   const isValidRange = (start: Date, end: Date) => {
     let curr = new Date(start);
-    while (curr <= end) {
+    // We only care if the NIGHTS are blocked. A check-out day can overlap a check-in day.
+    while (curr < end) {
       if (isBlocked(curr)) return false;
       curr.setDate(curr.getDate() + 1);
     }
@@ -83,14 +84,16 @@ function SmartCalendar({
   };
 
   const handleDateClick = (clickedDate: Date) => {
-    if (clickedDate < minDate || isBlocked(clickedDate)) return;
+    if (clickedDate < minDate) return;
 
     if (!checkIn || (checkIn && checkOut)) {
       // Start new selection
+      if (isBlocked(clickedDate)) return;
       onChange(clickedDate, null);
     } else {
       // We have check-in, selecting check-out
-      if (clickedDate < checkIn) {
+      if (clickedDate <= checkIn) {
+        if (isBlocked(clickedDate)) return;
         onChange(clickedDate, null);
       } else {
         // Ensure no blocked dates are between check-in and check-out
@@ -98,6 +101,7 @@ function SmartCalendar({
           onChange(checkIn, clickedDate);
         } else {
           // If there is a blocked date in between, reset selection to the clicked date
+          if (isBlocked(clickedDate)) return;
           onChange(clickedDate, null);
         }
       }
@@ -116,8 +120,12 @@ function SmartCalendar({
       const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), i);
       const dateStr = formatDate(date);
       const isPastOrBuffer = date < minDate;
-      const isFullyBooked = blockedDates.includes(dateStr);
-      const isDisabled = isPastOrBuffer || isFullyBooked;
+      const isNightBooked = blockedDates.includes(dateStr);
+      
+      let isDisabled = isPastOrBuffer || isNightBooked;
+      if (checkIn && !checkOut && date > checkIn) {
+        isDisabled = !isValidRange(checkIn, date);
+      }
 
       const isCheckIn = checkIn && formatDate(checkIn) === dateStr;
       const isCheckOut = checkOut && formatDate(checkOut) === dateStr;
@@ -127,7 +135,7 @@ function SmartCalendar({
       
       if (isDisabled) {
         baseClasses += "cursor-not-allowed text-gray-300 ";
-        if (isFullyBooked) baseClasses += "line-through decoration-red-400/50 ";
+        if (isNightBooked) baseClasses += "line-through decoration-red-400/50 ";
       } else if (isCheckIn || isCheckOut) {
         baseClasses += "bg-brand-blue text-white font-semibold shadow-md ";
       } else if (isInRange) {
@@ -143,10 +151,10 @@ function SmartCalendar({
             onClick={() => handleDateClick(date)}
             disabled={isDisabled}
             className={baseClasses}
-            title={isFullyBooked ? "Fully Booked/Holiday" : ""}
+        title={isNightBooked ? "Fully Booked/Holiday" : ""}
           >
             {i}
-            {isFullyBooked && !isPastOrBuffer && (
+        {isNightBooked && !isPastOrBuffer && (
                <span className="absolute bottom-1 h-1 w-1 rounded-full bg-red-400"></span>
             )}
           </button>
@@ -291,8 +299,16 @@ function BookNowContent() {
           const data = await response.json();
           const dates: string[] = [];
           data.forEach((booking: any) => {
-            let current = new Date(booking.check_in);
-            const end = new Date(booking.check_out);
+            // Split bypasses timezone shifts entirely by taking the exact YYYY-MM-DD
+            const checkInStr = String(booking.check_in).split('T')[0];
+            const checkOutStr = String(booking.check_out).split('T')[0];
+            
+            const [inY, inM, inD] = checkInStr.split('-');
+            let current = new Date(parseInt(inY), parseInt(inM) - 1, parseInt(inD));
+            
+            const [outY, outM, outD] = checkOutStr.split('-');
+            const end = new Date(parseInt(outY), parseInt(outM) - 1, parseInt(outD));
+            
             while (current < end) {
               dates.push(formatDate(current));
               current.setDate(current.getDate() + 1);
