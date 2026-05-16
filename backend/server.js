@@ -1,0 +1,144 @@
+require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
+const pool = require('./db');
+const nodemailer = require('nodemailer');
+
+const app = express();
+
+// Trust proxy is useful for environments behind reverse proxies (like Hostinger/Railway)
+app.set('trust proxy', 1);
+
+// Middleware
+// Configured CORS to restrict to your production domain and local development
+const allowedOrigins = [
+  'https://hotelathomeph.com',
+  'https://www.hotelathomeph.com',
+  'http://localhost:3000'
+];
+if (process.env.FRONTEND_URL) allowedOrigins.push(process.env.FRONTEND_URL);
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  }
+})); 
+app.use(express.json()); // Parses incoming JSON requests
+
+// Email Transporter Setup
+const transporter = nodemailer.createTransport({
+  service: 'gmail', // You can change this to Hostinger's SMTP if preferred
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
+});
+
+// Basic Health Check Route
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', message: 'Hotel at Home Backend is running!' });
+});
+
+// --- API ROUTES ---
+
+// 1. Get all rooms
+app.get('/api/rooms', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT * FROM rooms');
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching rooms:', error);
+    res.status(500).json({ error: 'Failed to fetch rooms' });
+  }
+});
+
+// 2. Create a new booking
+app.post('/api/bookings', async (req, res) => {
+  try {
+    const {
+      roomId, guestFirstName, guestLastName, guestEmail, guestPhone,
+      checkIn, checkOut, totalPrice
+    } = req.body;
+
+    // Generate a random confirmation code (e.g., HH-A1B2C3)
+    const confirmationCode = 'HH-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+
+    const [result] = await pool.query(
+      `INSERT INTO bookings 
+      (confirmation_code, room_id, guest_first_name, guest_last_name, guest_email, guest_phone, check_in, check_out, total_price) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [confirmationCode, roomId, guestFirstName, guestLastName, guestEmail, guestPhone, checkIn, checkOut, totalPrice]
+    );
+
+    // Send Email Notifications (Async, so it doesn't block the response if it fails)
+    try {
+      if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+        const mailOptionsAdmin = {
+          from: process.env.EMAIL_USER,
+          to: 'hotelathome.ph@gmail.com', // Admin Email
+          subject: `New Booking Received: ${confirmationCode}`,
+          text: `A new booking has been made!\n\nConfirmation Code: ${confirmationCode}\nRoom ID: ${roomId}\nGuest: ${guestFirstName} ${guestLastName}\nEmail: ${guestEmail}\nPhone: ${guestPhone}\nCheck-in: ${checkIn}\nCheck-out: ${checkOut}\nTotal Price: ₱${totalPrice}`
+        };
+        
+        const mailOptionsGuest = {
+          from: process.env.EMAIL_USER,
+          to: guestEmail,
+          subject: `Your Booking Confirmation: ${confirmationCode}`,
+          text: `Dear ${guestFirstName},\n\nThank you for booking with Hotel at Home!\n\nYour confirmation code is: ${confirmationCode}\nCheck-in: ${checkIn}\nCheck-out: ${checkOut}\nTotal: ₱${totalPrice}\n\nPlease keep this code to check your booking status on our website.\n\nBest regards,\nHotel at Home Team`
+        };
+        
+        await transporter.sendMail(mailOptionsAdmin);
+        await transporter.sendMail(mailOptionsGuest);
+      }
+    } catch (emailError) {
+      console.error('Failed to send confirmation emails:', emailError);
+    }
+
+    res.status(201).json({ success: true, confirmationCode, bookingId: result.insertId });
+  } catch (error) {
+    console.error('Error creating booking:', error);
+    res.status(500).json({ error: 'Failed to create booking' });
+  }
+});
+
+// 3. Get a booking by confirmation code
+app.get('/api/bookings/:code', async (req, res) => {
+  try {
+    const { code } = req.params;
+    const [rows] = await pool.query('SELECT * FROM bookings WHERE confirmation_code = ?', [code]);
+    
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Booking not found' });
+    }
+    
+    res.json(rows[0]);
+  } catch (error) {
+    console.error('Error fetching booking:', error);
+    res.status(500).json({ error: 'Failed to fetch booking' });
+  }
+});
+
+// 4. Get blocked dates for a specific room
+app.get('/api/bookings/dates/:roomId', async (req, res) => {
+  try {
+    const { roomId } = req.params;
+    // Fetch all bookings for this room that aren't cancelled
+    const [rows] = await pool.query(
+      "SELECT check_in, check_out FROM bookings WHERE room_id = ? AND status != 'Cancelled'", 
+      [roomId]
+    );
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching blocked dates:', error);
+    res.status(500).json({ error: 'Failed to fetch dates' });
+  }
+});
+
+const PORT = process.env.PORT || 4000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});

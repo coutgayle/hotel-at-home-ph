@@ -5,9 +5,9 @@
 This workspace contains a full-stack starter project with:
 - `Next.js` frontend in `frontend/`
 - `Express` backend in `backend/`
-- `MySQL` database integration
-- `Vercel` deployment path for the frontend
-- `Railway` deployment path for the backend and database
+- `MySQL` database integration (Hostinger hPanel)
+- Hostinger GitHub auto-deployment path for the Next.js frontend
+- Hostinger Node.js GitHub deployment path for the Express backend
 
 ## Frontend Setup
 
@@ -27,10 +27,17 @@ This workspace contains a full-stack starter project with:
 
 ## Deployment Notes
 
-- Frontend: Deploy `frontend/` to Vercel.
-- Backend: Deploy `backend/` to Railway.
-- Database: Use Railway MySQL add-on and wire the connection string to the backend.
-- Hostinger: Use Hostinger for any final static site or DNS hosting needs at the end of the project.
+### Hostinger + GitHub Deployment Steps
+
+1. **Database**: Create a MySQL Database in your Hostinger hPanel. Note your Database Name, User, and Password (they usually have prefixes like `u123456789_`). Open **phpMyAdmin** to execute your table creation scripts.
+2. **Backend**: 
+   - In your Hostinger Node.js dashboard, connect your GitHub repository.
+   - Set your deployment directory to `/backend` and your startup file to `server.js`.
+   - Add your MySQL database details directly to the **Environment Variables** section in the Hostinger dashboard (Do not push your `.env` file to GitHub). Start the app.
+3. **Frontend**: 
+   - In your Hostinger Web Hosting dashboard, connect your GitHub repository.
+   - Go to the **Environment Variables** section and add `NEXT_PUBLIC_API_URL=https://api.hotelathomeph.com`.
+   - Set the build command to `npm run build` and the publish directory to `frontend/out`.
 
 ## VS Code Tasks
 

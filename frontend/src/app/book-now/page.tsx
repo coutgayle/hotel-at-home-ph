@@ -1,34 +1,25 @@
-﻿'use client';
-import React, { useState, Suspense } from 'react';
+﻿﻿'use client';
+import React, { useState, Suspense, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 // --- MOCK DATA ---
 // In the future, these will come from your database
 const mockRooms = [
   { 
-    id: 1, name: 'Gold Room', price: 5500, capacity: 2, image: '/img/gold-room/gold1.jpg',
+    id: 1, name: 'Gold Room', price: 4800, weekendPrice: 5300, capacity: 2, image: '/img/gold-room/gold1.jpg',
     imagesCount: 15, folder: 'gold-room', prefix: 'gold',
     features: ['50 SQM', 'Ideal for 2 guests', '1 King size bed', '1 Bathroom', '4-Seater Dining Table', 'Kitchen cabinet with sink', 'Personal Ref', 'Air conditioning and WiFi', '55" Smart TV with Bluetooth Speaker', 'Electric Kettle', 'Toiletries, towels, and bathrobe', 'Contemporary artwork', 'Parking space'] 
   },
   { 
-    id: 2, name: 'Blue Room', price: 5500, capacity: 4, image: '/img/blue-room/blue1.jpg',
+    id: 2, name: 'Blue Room', price: 4800, weekendPrice: 5300, capacity: 4, image: '/img/blue-room/blue1.jpg',
     imagesCount: 13, folder: 'blue-room', prefix: 'blue',
     features: ['50 SQM', 'Ideal for 4 guests', '2 Queen size beds', '1 Bathroom', '6-Seater Dining Table', 'Kitchen cabinet with sink', 'Personal Ref', 'Air conditioning and WiFi', '55" Smart TV with DVD speaker', 'Electric Kettle', 'Toiletries, towels, and bathrobe', 'Contemporary artwork', 'Parking space'] 
   },
   { 
-    id: 3, name: 'Rooftop Lounge', price: null, capacity: 20, image: '/img/rooftop/rooftop1.jpg',
+    id: 3, name: 'Rooftop Lounge', price: null, weekendPrice: null, capacity: 20, image: '/img/rooftop/rooftop1.jpg',
     imagesCount: 13, folder: 'rooftop', prefix: 'rooftop',
     features: ['150 SQM', 'Outdoor and indoor seating', 'Bar counter', 'Dining table setup', 'Air conditioning and WiFi', '65" Smart TV with DVD speaker', 'Microphone for Karaoke - available upon request', 'Contemporary artwork'] 
   },
-];
-
-// Mocked fully booked / holiday dates
-const mockBlockedDates = [
-  '2026-05-15',
-  '2026-05-16',
-  '2026-05-24',
-  '2026-05-25',
-  '2026-06-12',
 ];
 
 // --- HELPER FUNCTIONS ---
@@ -53,10 +44,12 @@ function SmartCalendar({
   checkIn,
   checkOut,
   onChange,
+  blockedDates = [],
 }: {
   checkIn: Date | null;
   checkOut: Date | null;
   onChange: (inDate: Date | null, outDate: Date | null) => void;
+  blockedDates?: string[];
 }) {
   const [currentMonth, setCurrentMonth] = useState(getStartOfDay(new Date()));
 
@@ -76,7 +69,7 @@ function SmartCalendar({
   };
 
   const isBlocked = (date: Date) => {
-    return mockBlockedDates.includes(formatDate(date));
+    return blockedDates.includes(formatDate(date));
   };
 
   const isValidRange = (start: Date, end: Date) => {
@@ -122,7 +115,7 @@ function SmartCalendar({
       const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), i);
       const dateStr = formatDate(date);
       const isPastOrBuffer = date < minDate;
-      const isFullyBooked = mockBlockedDates.includes(dateStr);
+      const isFullyBooked = blockedDates.includes(dateStr);
       const isDisabled = isPastOrBuffer || isFullyBooked;
 
       const isCheckIn = checkIn && formatDate(checkIn) === dateStr;
@@ -272,6 +265,9 @@ function BookNowContent() {
   const [viewBookingCode, setViewBookingCode] = useState('');
   const [agreedToRules, setAgreedToRules] = useState(false);
   const [viewRoomDetails, setViewRoomDetails] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLookingUpBooking, setIsLookingUpBooking] = useState(false);
+  const [blockedDates, setBlockedDates] = useState<string[]>([]);
 
   // Calculate derived values
   const selectedRoom = mockRooms.find(r => r.id === selectedRoomId);
@@ -281,8 +277,56 @@ function BookNowContent() {
     const diffTime = Math.abs(checkOut.getTime() - checkIn.getTime());
     nights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   }
+  
+  // Fetch blocked dates when selected room changes
+  useEffect(() => {
+    if (!selectedRoomId) {
+      setBlockedDates([]);
+      return;
+    }
+    const fetchBlockedDates = async () => {
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+        const response = await fetch(`${apiUrl}/api/bookings/dates/${selectedRoomId}`);
+        if (response.ok) {
+          const data = await response.json();
+          const dates: string[] = [];
+          data.forEach((booking: any) => {
+            let current = new Date(booking.check_in);
+            const end = new Date(booking.check_out);
+            while (current < end) {
+              dates.push(formatDate(current));
+              current.setDate(current.getDate() + 1);
+            }
+          });
+          setBlockedDates(dates);
+        }
+      } catch (error) {
+        console.error('Error fetching dates:', error);
+      }
+    };
+    fetchBlockedDates();
+  }, [selectedRoomId]);
 
-  const roomTotal = selectedRoom && selectedRoom.price !== null ? (nights > 0 ? selectedRoom.price * nights : selectedRoom.price) : null;
+  let roomTotal = null;
+  if (selectedRoom && selectedRoom.price !== null) {
+    if (nights > 0 && checkIn) {
+      roomTotal = 0;
+      for (let i = 0; i < nights; i++) {
+        const currentDate = new Date(checkIn);
+        currentDate.setDate(currentDate.getDate() + i);
+        const dayOfWeek = currentDate.getDay(); // 0 is Sunday, 5 is Friday, 6 is Saturday
+        // Calculate Weekends as Friday and Saturday nights
+        if (dayOfWeek === 5 || dayOfWeek === 6) {
+          roomTotal += selectedRoom.weekendPrice || selectedRoom.price;
+        } else {
+          roomTotal += selectedRoom.price;
+        }
+      }
+    } else {
+      roomTotal = selectedRoom.price;
+    }
+  }
 
   const isStep4Valid = guestDetails.firstName && guestDetails.lastName && guestDetails.email && guestDetails.phone;
   const isStep5Valid = paymentDetails.idFront && paymentDetails.idBack && (paymentDetails.method === 'cash' || paymentDetails.proof);
@@ -294,15 +338,74 @@ function BookNowContent() {
     if (currentStep === 5 && !isStep5Valid) return;
     if (currentStep === 6) {
       if (!agreedToRules) return;
-      const code = 'HH-' + Math.random().toString(36).substring(2, 8).toUpperCase();
-      setConfirmationCode(code);
-      setBookingConfirmed(true);
+      
+      setIsSubmitting(true);
+      
+      const submitBooking = async () => {
+        try {
+          const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+          
+          const response = await fetch(`${apiUrl}/api/bookings`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              roomId: selectedRoomId,
+              guestFirstName: guestDetails.firstName,
+              guestLastName: guestDetails.lastName,
+              guestEmail: guestDetails.email,
+              guestPhone: guestDetails.phone,
+              checkIn: checkIn ? formatDate(checkIn) : null,
+              checkOut: checkOut ? formatDate(checkOut) : null,
+              totalPrice: roomTotal
+            }),
+          });
+          
+          const data = await response.json();
+          
+          if (response.ok) {
+            setConfirmationCode(data.confirmationCode);
+            setBookingConfirmed(true);
+          } else {
+            alert('Failed to submit booking: ' + (data.error || 'Unknown error'));
+          }
+        } catch (error) {
+          console.error('Error:', error);
+          alert('Network error. Please check your connection and try again.');
+        } finally {
+          setIsSubmitting(false);
+        }
+      };
+      
+      submitBooking();
       return;
     }
     setCurrentStep(prev => Math.min(prev + 1, 6));
   };
 
   const handlePrev = () => setCurrentStep(prev => Math.max(prev - 1, 1));
+
+  const handleLookupBooking = async () => {
+    if (!viewBookingCode) return;
+    
+    setIsLookingUpBooking(true);
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+      const response = await fetch(`${apiUrl}/api/bookings/${viewBookingCode.toUpperCase()}`);
+      const data = await response.json();
+      
+      if (response.ok) {
+        alert(`Booking Found!\nName: ${data.guest_first_name} ${data.guest_last_name}\nCheck-in: ${new Date(data.check_in).toLocaleDateString()}\nCheck-out: ${new Date(data.check_out).toLocaleDateString()}\nTotal: ₱${data.total_price}`);
+        setViewBookingModal(false);
+      } else {
+        alert('Booking not found. Please check your confirmation code.');
+      }
+    } catch (error) {
+      console.error('Error looking up booking:', error);
+      alert('Network error. Please try again later.');
+    } finally {
+      setIsLookingUpBooking(false);
+    }
+  };
 
   if (bookingConfirmed) {
     return (
@@ -341,8 +444,8 @@ function BookNowContent() {
             <h2 className="text-2xl font-semibold mb-4 text-brand-blue">View Your Booking</h2>
             <p className="text-sm text-brand-blue/70 mb-6">Enter your confirmation code to check the status of your reservation.</p>
             <input type="text" placeholder="e.g. HH-ABC123" value={viewBookingCode} onChange={(e) => setViewBookingCode(e.target.value)} className="w-full rounded-xl border border-brand-blue/10 bg-white px-4 py-3 outline-none focus:border-brand-blue transition mb-4 uppercase" />
-            <button onClick={() => { alert('Booking lookup functionality will be available once backend is connected.'); setViewBookingModal(false); }} className="w-full rounded-full bg-brand-blue px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#001a72]">
-              Check Status
+            <button onClick={handleLookupBooking} disabled={isLookingUpBooking || !viewBookingCode} className="w-full rounded-full bg-brand-blue px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#001a72] disabled:opacity-50 disabled:cursor-not-allowed">
+              {isLookingUpBooking ? 'Checking...' : 'Check Status'}
             </button>
           </div>
         </div>
@@ -406,7 +509,7 @@ function BookNowContent() {
                         <h3 className="font-semibold">{room.name}</h3>
                         <p className="text-sm text-brand-blue/60 mt-1">Up to {room.capacity} guests</p>
                         {room.price !== null ? (
-                          <p className="font-bold text-sm mt-3 uppercase tracking-wider text-accent">₱{room.price.toLocaleString()} / night</p>
+                          <p className="font-bold text-sm mt-3 uppercase tracking-wider text-accent">From ₱{room.price.toLocaleString()} / night</p>
                         ) : (
                           <p className="font-bold text-sm mt-3 uppercase tracking-wider text-accent">TBA / night</p>
                         )}
@@ -444,7 +547,8 @@ function BookNowContent() {
                     <SmartCalendar 
                       checkIn={checkIn} 
                       checkOut={checkOut} 
-                      onChange={(inD, outD) => { 
+                      blockedDates={blockedDates}
+                      onChange={(inD, outD) => {
                         setCheckIn(inD); 
                         setCheckOut(outD); 
                         if (inD && outD) {
@@ -648,15 +752,15 @@ function BookNowContent() {
                   (currentStep === 2 && (!checkIn || !checkOut || isCheckingDates || !datesAvailable)) ||
                   (currentStep === 4 && !isStep4Valid) ||
                   (currentStep === 5 && !isStep5Valid) ||
-                  (currentStep === 6 && !agreedToRules)
+                  (currentStep === 6 && (!agreedToRules || isSubmitting))
                 }
                 className={`px-8 py-2.5 rounded-full font-semibold text-sm transition ${
-                  ((currentStep === 1 && !selectedRoomId) || (currentStep === 2 && (!checkIn || !checkOut || isCheckingDates || !datesAvailable)) || (currentStep === 4 && !isStep4Valid) || (currentStep === 5 && !isStep5Valid) || (currentStep === 6 && !agreedToRules))
+                  ((currentStep === 1 && !selectedRoomId) || (currentStep === 2 && (!checkIn || !checkOut || isCheckingDates || !datesAvailable)) || (currentStep === 4 && !isStep4Valid) || (currentStep === 5 && !isStep5Valid) || (currentStep === 6 && (!agreedToRules || isSubmitting)))
                     ? 'bg-brand-blue/30 text-white cursor-not-allowed'
                     : 'bg-brand-blue text-white hover:bg-[#001a72] shadow-sm'
                 }`}
               >
-                {currentStep === 6 ? 'Confirm Booking' : 'Continue'}
+                {currentStep === 6 ? (isSubmitting ? 'Confirming...' : 'Confirm Booking') : 'Continue'}
               </button>
             </div>
           </div>

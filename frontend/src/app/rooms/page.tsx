@@ -102,7 +102,7 @@ function GoldRoomCard() {
       </div>
       <div className="space-y-6 p-8">
         <div>
-          <p className="text-sm font-bold uppercase tracking-[0.24em] text-brand-blue/60">₱5,500/night (Weekdays) • ₱6,000 (Weekends)</p>
+          <p className="text-sm font-bold uppercase tracking-[0.24em] text-brand-blue/60">₱4,800/night (Weekdays) • ₱5,300 (Weekends)</p>
         </div>
         <div className="grid gap-2 text-sm text-brand-blue/70 sm:grid-cols-2">
           <div className="space-y-2">
@@ -184,7 +184,7 @@ function BlueRoomCard() {
       </div>
       <div className="space-y-6 p-8">
         <div>
-          <p className="text-sm font-bold uppercase tracking-[0.24em] text-brand-blue/60">₱5,500/night (Weekdays) • ₱6,000 (Weekends)</p>
+          <p className="text-sm font-bold uppercase tracking-[0.24em] text-brand-blue/60">₱4,800/night (Weekdays) • ₱5,300 (Weekends)</p>
         </div>
         <div className="grid gap-2 text-sm text-brand-blue/70 sm:grid-cols-2">
           <div className="space-y-2">
