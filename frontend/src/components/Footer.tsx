@@ -1,4 +1,7 @@
+'use client';
+
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 const quickLinks = [
   { label: 'Home', href: '/' },
@@ -9,6 +12,9 @@ const quickLinks = [
 ];
 
 export default function Footer() {
+  const pathname = usePathname();
+  if (pathname === '/view-booking') return null;
+
   return (
     <footer className="bg-[#02136a] text-brand-white">
       <div className="mx-auto max-w-7xl px-6 py-14">
