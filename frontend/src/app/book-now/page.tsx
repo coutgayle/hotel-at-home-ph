@@ -252,6 +252,7 @@ function BookNowContent() {
   const [checkOut, setCheckOut] = useState<Date | null>(
     searchParams.get('checkOut') ? new Date(searchParams.get('checkOut') as string) : null
   );
+  const [purpose, setPurpose] = useState('');
   const [guests, setGuests] = useState(
     searchParams.get('guests') ? parseInt(searchParams.get('guests') as string) : 1
   );
@@ -329,7 +330,9 @@ function BookNowContent() {
   }
 
   const isStep3Valid = guestDetails.firstName && guestDetails.lastName && guestDetails.email && guestDetails.phone;
-  const isStep4Valid = paymentDetails.idFront && paymentDetails.idBack && paymentDetails.proof;
+  const isStep4Valid = selectedRoomId === 3 
+    ? paymentDetails.idFront && paymentDetails.idBack && purpose.trim() !== ''
+    : paymentDetails.idFront && paymentDetails.idBack && paymentDetails.proof;
 
   const handleNext = () => {
     if (currentStep === 1 && !selectedRoomId) return;
@@ -356,7 +359,8 @@ function BookNowContent() {
               guestPhone: guestDetails.phone,
               checkIn: checkIn ? formatDate(checkIn) : null,
               checkOut: checkOut ? formatDate(checkOut) : null,
-              totalPrice: roomTotal
+              totalPrice: roomTotal,
+              purpose: purpose
             }),
           });
           
@@ -413,15 +417,25 @@ function BookNowContent() {
         <div className="mx-auto max-w-3xl px-6 text-center">
           <div className="bg-white rounded-[32px] p-10 shadow-sm border border-brand-blue/5 mt-10">
             <svg className="w-20 h-20 text-green-500 mx-auto mb-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-            <h1 className="text-4xl font-script text-brand-blue mb-4">Booking Confirmed!</h1>
-            <p className="text-brand-blue/70 mb-8">Thank you for choosing Hotel at Home. We have received your reservation.</p>
+            <h1 className="text-4xl font-script text-brand-blue mb-4">
+              {selectedRoomId === 3 ? 'Inquiry Received!' : 'Booking Confirmed!'}
+            </h1>
+            <p className="text-brand-blue/70 mb-8">
+              {selectedRoomId === 3 
+                ? 'Thank you for inquiring about the Rooftop Lounge. Our team will review your event details and contact you shortly with pricing and approval.' 
+                : 'Thank you for choosing Hotel at Home. We have received your reservation.'}
+            </p>
             
             <div className="bg-brand-blue/5 rounded-2xl p-6 mb-8 inline-block">
-              <p className="text-sm uppercase tracking-wider text-brand-blue/60 mb-2 font-semibold">Your Confirmation Code</p>
+              <p className="text-sm uppercase tracking-wider text-brand-blue/60 mb-2 font-semibold">
+                {selectedRoomId === 3 ? 'Your Inquiry Code' : 'Your Confirmation Code'}
+              </p>
               <p className="text-3xl font-bold text-brand-blue tracking-widest">{confirmationCode}</p>
             </div>
             
-            <p className="text-sm text-brand-blue/70">Please save this code. You can use it in the &quot;View Booking&quot; feature to check your reservation status.</p>
+            <p className="text-sm text-brand-blue/70">
+              Please save this code. You can use it in the &quot;View Booking&quot; feature to check your status.
+            </p>
             
             <div className="mt-10">
               <a href="/" className="inline-flex rounded-full bg-brand-blue px-8 py-3 text-sm font-semibold text-white transition hover:bg-[#001a72]">Return to Home</a>
@@ -784,7 +798,7 @@ function BookNowContent() {
                     : 'bg-brand-blue text-white hover:bg-[#001a72] shadow-sm'
                 }`}
               >
-                {currentStep === 5 ? (isSubmitting ? 'Confirming...' : 'Confirm Booking') : 'Continue'}
+                {currentStep === 5 ? (isSubmitting ? 'Submitting...' : (selectedRoomId === 3 ? 'Submit Inquiry' : 'Confirm Booking')) : 'Continue'}
               </button>
             </div>
           </div>
@@ -838,7 +852,7 @@ function BookNowContent() {
                     {roomTotal !== null ? `₱${roomTotal.toLocaleString()}` : 'TBA'}
                   </span>
                 </div>
-                {selectedRoom && roomTotal !== null && (
+                {selectedRoomId !== 3 && roomTotal !== null && (
                    <p className="text-right text-xs text-white/50 mt-1">Taxes and fees included</p>
                 )}
               </div>

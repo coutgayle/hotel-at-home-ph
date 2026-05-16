@@ -62,7 +62,7 @@ app.post('/api/bookings', async (req, res) => {
   try {
     const {
       roomId, guestFirstName, guestLastName, guestEmail, guestPhone,
-      checkIn, checkOut, totalPrice
+      checkIn, checkOut, totalPrice, purpose
     } = req.body;
 
     // --- OVERLAP VALIDATION ---
@@ -89,26 +89,32 @@ app.post('/api/bookings', async (req, res) => {
 
     const [result] = await pool.query(
       `INSERT INTO bookings 
-      (confirmation_code, room_id, guest_first_name, guest_last_name, guest_email, guest_phone, check_in, check_out, total_price) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [confirmationCode, roomId, guestFirstName, guestLastName, guestEmail, guestPhone, checkIn, checkOut, finalPrice]
+      (confirmation_code, room_id, guest_first_name, guest_last_name, guest_email, guest_phone, check_in, check_out, total_price, purpose) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [confirmationCode, roomId, guestFirstName, guestLastName, guestEmail, guestPhone, checkIn, checkOut, finalPrice, purpose || null]
     );
 
     // Send Email Notifications (Async, so it doesn't block the response if it fails)
     try {
       if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+        const isRooftop = parseInt(roomId) === 3;
+        
         const mailOptionsAdmin = {
           from: process.env.EMAIL_USER,
           to: 'hotelathome.ph@gmail.com', // Admin Email
-          subject: `New Booking Received: ${confirmationCode}`,
-          text: `A new booking has been made!\n\nConfirmation Code: ${confirmationCode}\nRoom ID: ${roomId}\nGuest: ${guestFirstName} ${guestLastName}\nEmail: ${guestEmail}\nPhone: ${guestPhone}\nCheck-in: ${checkIn}\nCheck-out: ${checkOut}\nTotal Price: ₱${totalPrice}`
+          subject: isRooftop ? `New Rooftop Inquiry: ${confirmationCode}` : `New Booking Received: ${confirmationCode}`,
+          text: isRooftop 
+            ? `A new Rooftop Lounge inquiry has been made!\n\nInquiry Code: ${confirmationCode}\nGuest: ${guestFirstName} ${guestLastName}\nEmail: ${guestEmail}\nPhone: ${guestPhone}\nCheck-in: ${checkIn}\nCheck-out: ${checkOut}\nPurpose: ${purpose}\n\nPlease review this in your dashboard.`
+            : `A new booking has been made!\n\nConfirmation Code: ${confirmationCode}\nRoom ID: ${roomId}\nGuest: ${guestFirstName} ${guestLastName}\nEmail: ${guestEmail}\nPhone: ${guestPhone}\nCheck-in: ${checkIn}\nCheck-out: ${checkOut}\nTotal Price: ₱${totalPrice}`
         };
         
         const mailOptionsGuest = {
           from: process.env.EMAIL_USER,
           to: guestEmail,
-          subject: `Your Booking Confirmation: ${confirmationCode}`,
-          text: `Dear ${guestFirstName},\n\nThank you for booking with Hotel at Home!\n\nYour confirmation code is: ${confirmationCode}\nCheck-in: ${checkIn}\nCheck-out: ${checkOut}\nTotal: ₱${totalPrice}\n\nPlease keep this code to check your booking status on our website.\n\nBest regards,\nHotel at Home Team`
+          subject: isRooftop ? `Your Rooftop Inquiry: ${confirmationCode}` : `Your Booking Confirmation: ${confirmationCode}`,
+          text: isRooftop
+            ? `Dear ${guestFirstName},\n\nThank you for inquiring about the Rooftop Lounge at Hotel at Home!\n\nYour inquiry code is: ${confirmationCode}\nCheck-in: ${checkIn}\nCheck-out: ${checkOut}\nEvent Purpose: ${purpose}\n\nOur team will review your request and contact you shortly regarding pricing, setup, and approval.\n\nBest regards,\nHotel at Home Team`
+            : `Dear ${guestFirstName},\n\nThank you for booking with Hotel at Home!\n\nYour confirmation code is: ${confirmationCode}\nCheck-in: ${checkIn}\nCheck-out: ${checkOut}\nTotal: ₱${totalPrice}\n\nPlease keep this code to check your booking status on our website.\n\nBest regards,\nHotel at Home Team`
         };
         
         await transporter.sendMail(mailOptionsAdmin);
