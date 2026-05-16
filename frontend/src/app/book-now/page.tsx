@@ -680,24 +680,42 @@ function BookNowContent() {
                 )}
 
                 <div className="space-y-6">
-                  <p className="text-sm font-semibold uppercase tracking-wider text-brand-blue/60">2. Upload Requirements *</p>
+                  <p className="text-sm font-semibold uppercase tracking-wider text-brand-blue/60">2. Upload Requirements <span className="text-red-500">*</span></p>
                   
                   <div className="rounded-xl border border-brand-blue/10 p-4">
-                    <label className="block font-medium mb-1">Payment Screenshot</label>
+                    <p className="block font-medium mb-1">Payment Screenshot</p>
                     <p className="text-xs text-brand-blue/60 mb-3">Please upload a clear screenshot of your successful transaction.</p>
-                    <input type="file" accept="image/*" onChange={e => setPaymentDetails({...paymentDetails, proof: e.target.files?.[0] || null})} className="w-full text-sm text-brand-blue/70 file:mr-4 file:rounded-full file:border-0 file:bg-brand-blue/10 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-brand-blue hover:file:bg-brand-blue/20" />
+                    <div className="flex items-center gap-3">
+                      <label className="cursor-pointer rounded-full bg-brand-blue/10 px-4 py-2 text-xs font-semibold text-brand-blue transition hover:bg-brand-blue/20">
+                        Choose File
+                        <input type="file" accept="image/*" onChange={e => setPaymentDetails({...paymentDetails, proof: e.target.files?.[0] || null})} className="hidden" />
+                      </label>
+                      <span className="text-sm text-brand-blue/70">{paymentDetails.proof ? paymentDetails.proof.name : <span className="text-red-500 text-lg leading-none">*</span>}</span>
+                    </div>
                   </div>
 
                   <div className="rounded-xl border border-brand-blue/10 p-4">
-                    <label className="block font-medium mb-1">Valid ID (Front)</label>
+                    <p className="block font-medium mb-1">Valid ID (Front)</p>
                     <p className="text-xs text-brand-blue/60 mb-3">Upload the front picture of a valid government-issued ID.</p>
-                    <input type="file" accept="image/*" onChange={e => setPaymentDetails({...paymentDetails, idFront: e.target.files?.[0] || null})} className="w-full text-sm text-brand-blue/70 file:mr-4 file:rounded-full file:border-0 file:bg-brand-blue/10 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-brand-blue hover:file:bg-brand-blue/20" />
+                    <div className="flex items-center gap-3">
+                      <label className="cursor-pointer rounded-full bg-brand-blue/10 px-4 py-2 text-xs font-semibold text-brand-blue transition hover:bg-brand-blue/20">
+                        Choose File
+                        <input type="file" accept="image/*" onChange={e => setPaymentDetails({...paymentDetails, idFront: e.target.files?.[0] || null})} className="hidden" />
+                      </label>
+                      <span className="text-sm text-brand-blue/70">{paymentDetails.idFront ? paymentDetails.idFront.name : <span className="text-red-500 text-lg leading-none">*</span>}</span>
+                    </div>
                   </div>
 
                   <div className="rounded-xl border border-brand-blue/10 p-4">
-                    <label className="block font-medium mb-1">Valid ID (Back)</label>
+                    <p className="block font-medium mb-1">Valid ID (Back)</p>
                     <p className="text-xs text-brand-blue/60 mb-3">Upload the back picture of the same valid government-issued ID.</p>
-                    <input type="file" accept="image/*" onChange={e => setPaymentDetails({...paymentDetails, idBack: e.target.files?.[0] || null})} className="w-full text-sm text-brand-blue/70 file:mr-4 file:rounded-full file:border-0 file:bg-brand-blue/10 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-brand-blue hover:file:bg-brand-blue/20" />
+                    <div className="flex items-center gap-3">
+                      <label className="cursor-pointer rounded-full bg-brand-blue/10 px-4 py-2 text-xs font-semibold text-brand-blue transition hover:bg-brand-blue/20">
+                        Choose File
+                        <input type="file" accept="image/*" onChange={e => setPaymentDetails({...paymentDetails, idBack: e.target.files?.[0] || null})} className="hidden" />
+                      </label>
+                      <span className="text-sm text-brand-blue/70">{paymentDetails.idBack ? paymentDetails.idBack.name : <span className="text-red-500 text-lg leading-none">*</span>}</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -708,7 +726,7 @@ function BookNowContent() {
               <div className="space-y-8">
                 <h2 className="text-2xl font-semibold">Rules & Regulations</h2>
                 
-                <div className="rounded-2xl border border-brand-blue/10 bg-white p-6 h-64 overflow-y-auto space-y-6 text-sm text-brand-blue/80 shadow-inner">
+                <div className="rounded-2xl border border-brand-blue/10 bg-white p-6 space-y-6 text-sm text-brand-blue/80 shadow-inner">
                   <div>
                     <h3 className="font-semibold text-brand-blue mb-2 text-base">Check-in & Check-out</h3>
                     <ul className="list-disc pl-5 space-y-1">

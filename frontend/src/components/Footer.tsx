@@ -29,13 +29,19 @@ export default function Footer() {
           <div>
             <p className="mb-4 text-sm uppercase tracking-[0.32em] text-[#f9cd2a]">Contact Us</p>
             <ul className="space-y-3 text-sm text-brand-white/80">
-              <li>Salaban, Tagaytay-Amadeo Road, Cavite</li>
+              <li className="font-semibold text-brand-white">Hotel @ Home</li>
+              <li>9895 Salaban, Tagaytay-Amadeo Road, Cavite</li>
               <li>
                 <a href="mailto:hotelathome.ph@gmail.com" className="transition hover:text-[#f9cd2a]">
                   hotelathome.ph@gmail.com
                 </a>
               </li>
-              <li>(0918)923-0346</li>
+              <li>
+                <a href="tel:+639278584938" className="transition hover:text-[#f9cd2a]">+63 927 858 4938</a>
+              </li>
+              <li>
+                <a href="tel:+639178876444" className="transition hover:text-[#f9cd2a]">+63 917 887 6444</a>
+              </li>
             </ul>
           </div>
 
