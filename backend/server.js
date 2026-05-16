@@ -195,6 +195,16 @@ app.use(express.static(frontendOutPath, { extensions: ['html'] }));
 
 // Catch-all handler for 404 Not Found (Next.js is a Multi-Page Application)
 app.get('*', (req, res) => {
+  const fs = require('fs');
+  
+  // Catch trailing slashes and direct matches to ensure Next.js pages load reliably
+  let reqPath = req.path.endsWith('/') && req.path.length > 1 ? req.path.slice(0, -1) : req.path;
+  const htmlPath = path.join(frontendOutPath, `${reqPath}.html`);
+  
+  if (fs.existsSync(htmlPath)) {
+    return res.sendFile(htmlPath);
+  }
+
   const notFoundPath = path.join(frontendOutPath, '404.html');
   res.status(404).sendFile(notFoundPath, (err) => {
     if (err) {
