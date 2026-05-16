@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "postinstall": "npm install --prefix frontend && npm install --prefix backend",
+    "postinstall": "npm install --prefix frontend --no-audit --no-fund --loglevel=error && npm install --prefix backend --no-audit --no-fund --loglevel=error",
     "build": "npm run build --prefix frontend",
     "start": "node backend/server.js"
   }
