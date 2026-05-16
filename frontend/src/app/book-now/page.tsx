@@ -1,6 +1,7 @@
 ﻿﻿'use client';
 import React, { useState, Suspense, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 
 // --- MOCK DATA ---
 // In the future, these will come from your database
@@ -262,12 +263,9 @@ function BookNowContent() {
   const [datesAvailable, setDatesAvailable] = useState(!!(searchParams.get('checkIn') && searchParams.get('checkOut')));
   const [bookingConfirmed, setBookingConfirmed] = useState(false);
   const [confirmationCode, setConfirmationCode] = useState('');
-  const [viewBookingModal, setViewBookingModal] = useState(false);
-  const [viewBookingCode, setViewBookingCode] = useState('');
   const [agreedToRules, setAgreedToRules] = useState(false);
   const [viewRoomDetails, setViewRoomDetails] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLookingUpBooking, setIsLookingUpBooking] = useState(false);
   const [blockedDates, setBlockedDates] = useState<string[]>([]);
 
   // Calculate derived values
@@ -388,29 +386,6 @@ function BookNowContent() {
 
   const handlePrev = () => setCurrentStep(prev => Math.max(prev - 1, 1));
 
-  const handleLookupBooking = async () => {
-    if (!viewBookingCode) return;
-    
-    setIsLookingUpBooking(true);
-    try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-      const response = await fetch(`${apiUrl}/api/bookings/${viewBookingCode.toUpperCase()}`);
-      const data = await response.json();
-      
-      if (response.ok) {
-        alert(`Booking Found!\nName: ${data.guest_first_name} ${data.guest_last_name}\nCheck-in: ${new Date(data.check_in).toLocaleDateString()}\nCheck-out: ${new Date(data.check_out).toLocaleDateString()}\nTotal: ₱${data.total_price}`);
-        setViewBookingModal(false);
-      } else {
-        alert('Booking not found. Please check your confirmation code.');
-      }
-    } catch (error) {
-      console.error('Error looking up booking:', error);
-      alert('Network error. Please try again later.');
-    } finally {
-      setIsLookingUpBooking(false);
-    }
-  };
-
   if (bookingConfirmed) {
     return (
       <main className="min-h-screen bg-[#f3f6fb] text-brand-blue pb-20 pt-24">
@@ -437,8 +412,9 @@ function BookNowContent() {
               Please save this code. You can use it in the &quot;View Booking&quot; feature to check your status.
             </p>
             
-            <div className="mt-10">
-              <a href="/" className="inline-flex rounded-full bg-brand-blue px-8 py-3 text-sm font-semibold text-white transition hover:bg-[#001a72]">Return to Home</a>
+            <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Link href="/view-booking" className="inline-flex w-full sm:w-auto justify-center rounded-full bg-brand-blue px-8 py-3 text-sm font-semibold text-white transition hover:bg-[#001a72]">View Status</Link>
+              <Link href="/" className="inline-flex w-full sm:w-auto justify-center rounded-full bg-brand-blue/10 px-8 py-3 text-sm font-semibold text-brand-blue transition hover:bg-brand-blue/20">Return Home</Link>
             </div>
           </div>
         </div>
@@ -448,23 +424,6 @@ function BookNowContent() {
 
   return (
     <main className="min-h-screen bg-[#f3f6fb] text-brand-blue pb-20 pt-24">
-      {/* View Booking Modal */}
-      {viewBookingModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-[32px] p-8 max-w-md w-full shadow-lg relative">
-            <button onClick={() => setViewBookingModal(false)} className="absolute right-6 top-6 text-brand-blue/50 hover:text-brand-blue transition">
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-            </button>
-            <h2 className="text-2xl font-semibold mb-4 text-brand-blue">View Your Booking</h2>
-            <p className="text-sm text-brand-blue/70 mb-6">Enter your confirmation code to check the status of your reservation.</p>
-            <input type="text" placeholder="e.g. HH-ABC123" value={viewBookingCode} onChange={(e) => setViewBookingCode(e.target.value)} className="w-full rounded-xl border border-brand-blue/10 bg-white px-4 py-3 outline-none focus:border-brand-blue transition mb-4 uppercase" />
-            <button onClick={handleLookupBooking} disabled={isLookingUpBooking || !viewBookingCode} className="w-full rounded-full bg-brand-blue px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#001a72] disabled:opacity-50 disabled:cursor-not-allowed">
-              {isLookingUpBooking ? 'Checking...' : 'Check Status'}
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Room Details Modal */}
       {viewRoomDetails && selectedRoom && (
         <RoomDetailsModal room={selectedRoom} onClose={() => setViewRoomDetails(false)} />
@@ -473,12 +432,12 @@ function BookNowContent() {
       <div className="mx-auto max-w-7xl px-6">
         <div className="mb-12 text-center relative">
           <div className="absolute right-0 top-0 hidden sm:block">
-            <button onClick={() => setViewBookingModal(true)} className="text-sm font-semibold text-brand-blue hover:text-accent underline transition">View Booking</button>
+            <Link href="/view-booking" className="text-sm font-semibold text-brand-blue hover:text-accent underline transition">View Booking</Link>
           </div>
           <h1 className="text-4xl font-script text-brand-blue md:text-5xl">Book Your Stay</h1>
           <p className="mt-3 text-brand-blue/70">Complete your reservation in just a few simple steps</p>
           <div className="mt-4 sm:hidden">
-            <button onClick={() => setViewBookingModal(true)} className="text-sm font-semibold text-brand-blue hover:text-accent underline transition">View Booking</button>
+            <Link href="/view-booking" className="text-sm font-semibold text-brand-blue hover:text-accent underline transition">View Booking</Link>
           </div>
         </div>
 

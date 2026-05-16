@@ -5,7 +5,8 @@ const quickLinks = [
   { label: 'Rooms', href: '/rooms' },
   { label: 'Info', href: '/info' },
   { label: 'Book Now', href: '/book-now' },
-  { label: 'FAQs', href: '/faqs' }
+  { label: 'FAQs', href: '/faqs' },
+  { label: 'View Booking', href: '/view-booking' }
 ];
 
 export default function Footer() {

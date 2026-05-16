@@ -9,7 +9,8 @@ const navLinks = [
   { label: 'Home', href: '/' },
   { label: 'Rooms', href: '/rooms' },
   { label: 'Info', href: '/info' },
-  { label: 'FAQs', href: '/faqs' }
+  { label: 'FAQs', href: '/faqs' },
+  { label: 'View Booking', href: '/view-booking' }
 ];
 
 export default function Header() {
