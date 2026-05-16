@@ -137,10 +137,16 @@ app.post('/api/bookings', async (req, res) => {
 app.get('/api/bookings/:code', async (req, res) => {
   try {
     const { code } = req.params;
-    const [rows] = await pool.query('SELECT * FROM bookings WHERE confirmation_code = ?', [code]);
+    const { email } = req.query;
+
+    if (!email) {
+      return res.status(400).json({ error: 'Email address is required to view your booking.' });
+    }
+
+    const [rows] = await pool.query('SELECT * FROM bookings WHERE confirmation_code = ? AND guest_email = ?', [code, email]);
     
     if (rows.length === 0) {
-      return res.status(404).json({ error: 'Booking not found' });
+      return res.status(404).json({ error: 'Booking not found or email does not match.' });
     }
     
     res.json(rows[0]);
