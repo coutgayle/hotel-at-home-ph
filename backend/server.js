@@ -193,13 +193,13 @@ const rootDir = __dirname.endsWith('backend') ? path.resolve(__dirname, '..') : 
 const frontendOutPath = path.join(rootDir, 'frontend', 'out');
 app.use(express.static(frontendOutPath, { extensions: ['html'] }));
 
-// Catch-all handler to ensure client-side routing works for Next.js
+// Catch-all handler for 404 Not Found (Next.js is a Multi-Page Application)
 app.get('*', (req, res) => {
-  const indexPath = path.join(frontendOutPath, 'index.html');
-  res.sendFile(indexPath, (err) => {
+  const notFoundPath = path.join(frontendOutPath, '404.html');
+  res.status(404).sendFile(notFoundPath, (err) => {
     if (err) {
-      console.error('Frontend file missing:', err);
-      res.status(500).send('<div style="font-family: sans-serif; text-align: center; margin-top: 50px;"><h2>Deployment Updating...</h2><p>The backend is active but the frontend files are missing. If you just deployed, wait 2 minutes.</p></div>');
+      console.error('404 file missing:', err);
+      res.status(404).send('<div style="font-family: sans-serif; text-align: center; margin-top: 50px;"><h2>Page Not Found</h2><p>This page does not exist or the deployment is still updating.</p><a href="/" style="color: #011478; text-decoration: underline;">Return Home</a></div>');
     }
   });
 });
