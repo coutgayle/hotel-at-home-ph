@@ -139,17 +139,33 @@ app.get('/api/bookings/dates/:roomId', async (req, res) => {
   }
 });
 
+// 5. Debug route to verify Hostinger paths
+app.get('/api/debug', (req, res) => {
+  const fs = require('fs');
+  const rootDir = __dirname.endsWith('backend') ? path.resolve(__dirname, '..') : process.cwd();
+  const frontendPath = path.join(rootDir, 'frontend', 'out');
+  res.json({
+    status: 'running',
+    rootDir: rootDir,
+    dirname: __dirname,
+    frontendExists: fs.existsSync(frontendPath),
+    files: fs.existsSync(frontendPath) ? fs.readdirSync(frontendPath) : 'Missing'
+  });
+});
+
 // --- SERVE FRONTEND WEBSITE ---
-// Serve the static files from the Next.js 'out' directory
-app.use(express.static(path.join(__dirname, '../frontend/out'), { extensions: ['html'] }));
+// Use absolute path to bypass Hostinger pathing issues
+const rootDir = __dirname.endsWith('backend') ? path.resolve(__dirname, '..') : process.cwd();
+const frontendOutPath = path.join(rootDir, 'frontend', 'out');
+app.use(express.static(frontendOutPath, { extensions: ['html'] }));
 
 // Catch-all handler to ensure client-side routing works for Next.js
 app.get('*', (req, res) => {
-  const indexPath = path.join(__dirname, '../frontend/out/index.html');
+  const indexPath = path.join(frontendOutPath, 'index.html');
   res.sendFile(indexPath, (err) => {
     if (err) {
       console.error('Frontend file missing:', err);
-      res.status(500).send('<div style="font-family: sans-serif; text-align: center; margin-top: 50px;"><h2>Website is updating...</h2><p>The server is running, but the frontend is still compiling. Please refresh this page in a minute.</p></div>');
+      res.status(500).send('<div style="font-family: sans-serif; text-align: center; margin-top: 50px;"><h2>Deployment Updating...</h2><p>The backend is active but the frontend files are missing. If you just deployed, wait 2 minutes.</p></div>');
     }
   });
 });
