@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const pool = require('./db');
 const nodemailer = require('nodemailer');
+const path = require('path');
 
 const app = express();
 
@@ -136,6 +137,15 @@ app.get('/api/bookings/dates/:roomId', async (req, res) => {
     console.error('Error fetching blocked dates:', error);
     res.status(500).json({ error: 'Failed to fetch dates' });
   }
+});
+
+// --- SERVE FRONTEND WEBSITE ---
+// Serve the static files from the Next.js 'out' directory
+app.use(express.static(path.join(__dirname, '../frontend/out')));
+
+// Catch-all handler to ensure client-side routing works for Next.js
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/out/index.html'));
 });
 
 const PORT = process.env.PORT || 4000;
