@@ -220,34 +220,36 @@ function ProgressBar({ currentStep }: { currentStep: number }) {
   const steps = ["Room", "Dates", "Guests", "Payment", "Rules"];
   
   return (
-    <div className="mb-12 relative w-full max-w-3xl mx-auto">
-      <div className="absolute top-1/2 left-0 h-0.5 w-full -translate-y-1/2 bg-brand-blue/10 z-0"></div>
-      <div 
-        className="absolute top-1/2 left-0 h-0.5 -translate-y-1/2 bg-brand-blue transition-all duration-300 z-0"
-        style={{ width: `${((currentStep - 1) / (steps.length - 1)) * 100}%` }}
-      ></div>
-      <div className="relative z-10 flex justify-between">
+    <div className="mb-12 w-full max-w-3xl mx-auto">
+      <div className="flex items-center justify-between">
         {steps.map((label, index) => {
           const stepNum = index + 1;
           const isCompleted = stepNum < currentStep;
           const isActive = stepNum === currentStep;
           
           return (
-            <div key={label} className="flex flex-col items-center gap-2">
-              <div className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold transition-colors duration-300
-                ${isActive ? 'bg-brand-blue text-white ring-4 ring-brand-blue/20' : 
-                  isCompleted ? 'bg-brand-blue text-white' : 'bg-white text-brand-blue border border-brand-blue/20'}`}
-              >
-                {isCompleted ? (
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
-                ) : (
-                  stepNum
-                )}
+            <React.Fragment key={label}>
+              <div className="flex flex-col items-center relative">
+                <div className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold transition-colors duration-300 z-10
+                  ${isActive ? 'bg-brand-blue text-white ring-4 ring-brand-blue/20' : 
+                    isCompleted ? 'bg-brand-blue text-white' : 'bg-white text-brand-blue border border-brand-blue/20'}`}
+                >
+                  {isCompleted ? (
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                  ) : (
+                    stepNum
+                  )}
+                </div>
+                <span className={`text-xs absolute top-10 whitespace-nowrap hidden md:block ${isActive || isCompleted ? 'text-brand-blue font-semibold' : 'text-brand-blue/50'}`}>
+                  {label}
+                </span>
               </div>
-              <span className={`text-xs hidden md:block ${isActive || isCompleted ? 'text-brand-blue font-semibold' : 'text-brand-blue/50'}`}>
-                {label}
-              </span>
-            </div>
+              {index < steps.length - 1 && (
+                <div className="flex-1 h-0.5 mx-2 rounded bg-brand-blue/10 relative overflow-hidden flex items-center">
+                  <div className={`absolute top-0 left-0 h-full bg-brand-blue transition-all duration-300 ${isCompleted ? 'w-full' : 'w-0'}`}></div>
+                </div>
+              )}
+            </React.Fragment>
           );
         })}
       </div>

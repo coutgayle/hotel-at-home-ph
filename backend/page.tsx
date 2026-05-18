@@ -5,13 +5,14 @@ import Link from 'next/link';
 
 export default function ViewBookingPage() {
   const [code, setCode] = useState('');
+  const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [booking, setBooking] = useState<any>(null);
 
   const handleLookup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!code.trim()) return;
+    if (!code.trim() || !email.trim()) return;
 
     setIsLoading(true);
     setError('');
@@ -19,13 +20,13 @@ export default function ViewBookingPage() {
 
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
-      const response = await fetch(`${apiUrl}/api/bookings/${code.trim().toUpperCase()}`);
+      const response = await fetch(`${apiUrl}/api/bookings/${code.trim().toUpperCase()}?email=${encodeURIComponent(email.trim())}`);
       const data = await response.json();
 
       if (response.ok) {
         setBooking(data);
       } else {
-        setError(data.error || 'Booking not found. Please check your confirmation code.');
+        setError(data.error || 'Booking not found. Please check your confirmation code and email address.');
       }
     } catch (err) {
       setError('Network error. Please try again later.');
@@ -63,17 +64,27 @@ export default function ViewBookingPage() {
             <div>
               <input 
                 type="text" 
-                placeholder="e.g. HH-ABC123" 
+                placeholder="Confirmation Code (e.g. HH-ABC123)" 
                 value={code} 
                 onChange={(e) => setCode(e.target.value)} 
                 className="w-full rounded-xl border border-brand-blue/10 bg-[#f3f6fb] px-6 py-4 outline-none focus:border-brand-blue transition text-center text-lg uppercase tracking-widest font-semibold placeholder:font-normal placeholder:tracking-normal" 
                 required
               />
             </div>
+            <div>
+              <input 
+                type="email" 
+                placeholder="Email Address used for booking" 
+                value={email} 
+                onChange={(e) => setEmail(e.target.value)} 
+                className="w-full rounded-xl border border-brand-blue/10 bg-[#f3f6fb] px-6 py-4 outline-none focus:border-brand-blue transition text-center text-base" 
+                required
+              />
+            </div>
             {error && <p className="text-red-500 text-sm text-center">{error}</p>}
             <button 
               type="submit" 
-              disabled={isLoading || !code.trim()} 
+              disabled={isLoading || !code.trim() || !email.trim()} 
               className="w-full rounded-full bg-brand-blue px-6 py-4 font-semibold text-white transition hover:bg-[#001a72] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? 'Searching...' : 'Check Status'}
@@ -104,7 +115,7 @@ export default function ViewBookingPage() {
               <div><p className="text-xs uppercase tracking-wider text-brand-blue/50 mb-1">Check-out</p><p className="font-medium">{formatDisplayDate(booking.check_out)}</p></div>
               
               {booking.room_id === 3 ? (
-                <div className="sm:col-span-2"><p className="text-xs uppercase tracking-wider text-brand-blue/50 mb-1">Event Purpose</p><p className="font-medium">{booking.purpose || 'N/A'}</p></div>
+                <div className="sm:col-span-2"><p className="text-xs uppercase tracking-wider text-brand-blue/50 mb-1">Event Purpose & Details</p><p className="font-medium whitespace-pre-wrap">{booking.purpose || 'N/A'}</p></div>
               ) : (
                 <div className="sm:col-span-2"><p className="text-xs uppercase tracking-wider text-brand-blue/50 mb-1">Total Price</p><p className="font-medium text-lg text-accent tracking-wider">₱{parseFloat(booking.total_price).toLocaleString()}</p></div>
               )}
