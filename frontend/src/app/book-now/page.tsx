@@ -552,6 +552,7 @@ function BookNowContent() {
                       onChange={(inD, outD) => {
                         setCheckIn(inD); 
                         setCheckOut(outD); 
+                        if (selectedRoomId === 3) setTimeSlot('');
                         if (inD && outD) {
                           setIsCheckingDates(true);
                           setDatesAvailable(false);
@@ -577,20 +578,36 @@ function BookNowContent() {
                           <div className="rounded-2xl border border-brand-blue/10 bg-brand-blue/5 p-4 mt-4">
                             <p className="text-xs font-semibold uppercase tracking-wider text-brand-blue/50 mb-3">Select 12-Hour Time Slot <span className="text-red-500">*</span></p>
                             <div className="flex flex-wrap gap-2">
-                              {['08:00 AM - 08:00 PM', '10:00 AM - 10:00 PM', '02:00 PM - 02:00 AM'].map(slot => (
-                                <button
-                                  key={slot}
-                                  onClick={() => setTimeSlot(slot)}
-                                  className={`px-3 py-1.5 rounded-full border text-sm font-medium transition ${
-                                    timeSlot === slot 
-                                      ? 'bg-brand-blue text-white border-brand-blue' 
-                                      : 'bg-white text-brand-blue border-brand-blue/20 hover:border-brand-blue/40'
-                                  }`}
-                                >
-                                  {slot}
-                                </button>
-                              ))}
+                              {['08:00 AM - 08:00 PM', '10:00 AM - 10:00 PM', '02:00 PM - 02:00 AM'].map(slot => {
+                                const isMorningSlot = slot.includes('08:00 AM') || slot.includes('10:00 AM');
+                                const isPrevNightBooked = checkIn ? blockedDates.includes(formatDate(addDays(checkIn, -1))) : false;
+                                const isDisabled = isPrevNightBooked && isMorningSlot;
+
+                                return (
+                                  <button
+                                    key={slot}
+                                    onClick={() => !isDisabled && setTimeSlot(slot)}
+                                    disabled={isDisabled}
+                                    className={`px-3 py-1.5 rounded-full border text-sm font-medium transition ${
+                                      isDisabled 
+                                        ? 'bg-brand-blue/5 text-brand-blue/30 border-brand-blue/10 cursor-not-allowed'
+                                        : timeSlot === slot 
+                                          ? 'bg-brand-blue text-white border-brand-blue' 
+                                          : 'bg-white text-brand-blue border-brand-blue/20 hover:border-brand-blue/40'
+                                    }`}
+                                    title={isDisabled ? "Guests are checking out at 12:00 PM today." : ""}
+                                  >
+                                    {slot}
+                                  </button>
+                                );
+                              })}
                             </div>
+                            {checkIn && blockedDates.includes(formatDate(addDays(checkIn, -1))) && (
+                              <p className="text-xs text-brand-blue/60 mt-3 font-medium flex items-start gap-1.5">
+                                <svg className="w-4 h-4 text-brand-blue/50 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                Morning slots are unavailable because there are guests checking out at 12:00 PM today.
+                              </p>
+                            )}
                           </div>
                         )}
                       </>
