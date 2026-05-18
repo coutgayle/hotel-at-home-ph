@@ -108,19 +108,15 @@ app.post('/api/bookings', async (req, res) => {
         const mailOptionsAdmin = {
           from: process.env.EMAIL_USER,
           to: 'hotelathome.ph@gmail.com', // Admin Email
-          subject: isRooftop ? `New Rooftop Inquiry: ${confirmationCode}` : `New Booking Received: ${confirmationCode}`,
-          text: isRooftop 
-            ? `A new Rooftop Lounge inquiry has been made!\n\nInquiry Code: ${confirmationCode}\nGuest: ${guestFirstName} ${guestLastName}\nEmail: ${guestEmail}\nPhone: ${guestPhone}\nCheck-in: ${checkIn}\nCheck-out: ${checkOut}\nGuests: ${guests || 1}\nPurpose: ${purpose}\n\nPlease review this in your dashboard.`
-            : `A new booking has been made!\n\nConfirmation Code: ${confirmationCode}\nRoom ID: ${roomId}\nGuest: ${guestFirstName} ${guestLastName}\nEmail: ${guestEmail}\nPhone: ${guestPhone}\nCheck-in: ${checkIn}\nCheck-out: ${checkOut}\nTotal Price: ₱${totalPrice}`
+          subject: `New Booking Received: ${confirmationCode}`,
+          text: `A new booking has been made!\n\nConfirmation Code: ${confirmationCode}\nRoom ID: ${roomId} (${roomName})\nGuest: ${guestFirstName} ${guestLastName}\nEmail: ${guestEmail}\nPhone: ${guestPhone}\nCheck-in: ${checkIn}\nCheck-out: ${checkOut}\nGuests: ${guests || 1}\nTotal Price: ₱${totalPrice}\nPurpose/Notes: ${purpose || 'N/A'}`
         };
         
         const mailOptionsGuest = {
           from: process.env.EMAIL_USER,
           to: guestEmail,
-          subject: isRooftop ? `Your Rooftop Inquiry: ${confirmationCode}` : `Booking Confirmation – Hotel At Home`,
-          text: isRooftop
-            ? `Hi ${guestFirstName},\n\nThank you for inquiring about the Rooftop Lounge at Hotel at Home! We have received your request.\n\nHere are your inquiry details for reference:\nRoom Type: ${roomName}\nCheck-in: ${checkIn} at 2:00 PM\nCheck-out: ${checkOut} at 12:00 PM\nGuests: ${guests || 1}\nEvent Purpose: ${purpose}\nInquiry Code: ${confirmationCode}\n\nOur team will review your event details and contact you shortly regarding pricing, setup, and approval.\n\nFor a smooth stay, kindly review our House Rules here: https://hotelathomeph.com/info/\n\nIf you have any questions, please feel free to contact us via email or Viber. We'll be happy to assist.\n\nBest regards,\nHotel at Home Team\n+63 927 858 4938\n+63 917 887 6444`
-            : `Hi ${guestFirstName},\n\nThank you for booking with Hotel at Home. We are pleased to confirm your reservation.\n\nHere are your booking details for reference:\nRoom Type: ${roomName}\nCheck-in: ${checkIn} at 2:00 PM\nCheck-out: ${checkOut} at 12:00 PM\nGuests: ${guests || 1}\nConfirmation Code: ${confirmationCode}\n\nFor a smooth stay, kindly review our House Rules here: https://hotelathomeph.com/info/\n\nA separate message with additional check-in instructions will be sent prior to your arrival date.\n\nIf you have any questions, please feel free to contact us via email or Viber. We'll be happy to assist and make your stay as comfortable as possible.\n\nThank you, and we look forward to hosting you.\n\nBest regards,\nHotel at Home Team\n+63 927 858 4938\n+63 917 887 6444`
+          subject: `Booking Confirmation – Hotel At Home`,
+          text: `Hi ${guestFirstName},\n\nThank you for booking with Hotel at Home. We are pleased to confirm your reservation.\n\nHere are your booking details for reference:\nRoom Type: ${roomName}\nCheck-in: ${checkIn}${parseInt(roomId) !== 3 ? ' at 2:00 PM' : ''}\nCheck-out: ${checkOut}${parseInt(roomId) !== 3 ? ' at 12:00 PM' : ''}\nGuests: ${guests || 1}\nConfirmation Code: ${confirmationCode}\nPurpose/Notes: ${purpose || 'N/A'}\n\nFor a smooth stay, kindly review our House Rules here: https://hotelathomeph.com/info/\n\nA separate message with additional check-in instructions will be sent prior to your arrival date.\n\nIf you have any questions, please feel free to contact us via email or Viber. We'll be happy to assist and make your stay as comfortable as possible.\n\nThank you, and we look forward to hosting you.\n\nBest regards,\nHotel at Home Team\n+63 927 858 4938\n+63 917 887 6444`
         };
         
         await transporter.sendMail(mailOptionsAdmin);

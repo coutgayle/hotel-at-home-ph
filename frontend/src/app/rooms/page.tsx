@@ -106,7 +106,7 @@ function GoldRoomCard() {
         </div>
         <div className="grid gap-2 text-sm text-brand-blue/70 sm:grid-cols-2">
           <div className="space-y-2">
-            <p>50 SQM</p>
+            <p>50 SQM with balcony</p>
             <p>Ideal for 2 guests</p>
             <p>1 King size bed</p>
             <p>1 Bathroom</p>
@@ -187,7 +187,7 @@ function BlueRoomCard() {
         </div>
         <div className="grid gap-2 text-sm text-brand-blue/70 sm:grid-cols-2">
           <div className="space-y-2">
-            <p>50 SQM</p>
+            <p>50 SQM with balcony</p>
             <p>Ideal for 4 guests</p>
             <p>2 Queen size beds</p>
             <p>1 Bathroom</p>
@@ -265,6 +265,7 @@ function RooftopCard() {
       <div className="space-y-6 p-8">
         <div>
           <h2 className="text-3xl font-semibold text-brand-blue">Rooftop Lounge</h2>
+          <p className="text-sm font-bold uppercase tracking-[0.24em] text-brand-blue/60 mt-2">₱8,000/12-hrs (Weekdays) • ₱10,000 (Weekends)</p>
         </div>
         <p className="text-brand-blue/70">
           This 150SQM exclusive space is ideal for 15-20 guests, perfect for general hangouts or slow mornings with the cool Amadeo-Tagaytay breeze.
@@ -288,7 +289,7 @@ function RooftopCard() {
             href="/book-now?roomId=3"
             className="inline-flex min-w-[140px] items-center justify-center rounded-full bg-brand-blue px-6 py-3 text-sm font-semibold text-brand-white transition hover:bg-[#001a72]"
           >
-            Inquire
+            Book Now
           </a>
         </div>
       </div>

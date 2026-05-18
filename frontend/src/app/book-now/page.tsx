@@ -1,4 +1,4 @@
-﻿﻿'use client';
+﻿﻿﻿﻿'use client';
 import React, { useState, Suspense, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -9,15 +9,15 @@ const mockRooms = [
   { 
     id: 1, name: 'Gold Room', price: 4800, weekendPrice: 5300, capacity: 2, image: '/img/gold-room/gold1.jpg',
     imagesCount: 15, folder: 'gold-room', prefix: 'gold',
-    features: ['50 SQM', 'Ideal for 2 guests', '1 King size bed', '1 Bathroom', '4-Seater Dining Table', 'Kitchen cabinet with sink', 'Personal Ref', 'Air conditioning and WiFi', '55" Smart TV with Bluetooth Speaker', 'Toiletries, towels, and bathrobe', 'Contemporary artwork', 'Parking space'] 
+    features: ['50 SQM with balcony', 'Ideal for 2 guests', '1 King size bed', '1 Bathroom', '4-Seater Dining Table', 'Kitchen cabinet with sink', 'Personal Ref', 'Air conditioning and WiFi', '55" Smart TV with Bluetooth Speaker', 'Toiletries, towels, and bathrobe', 'Contemporary artwork', 'Parking space'] 
   },
   { 
     id: 2, name: 'Blue Room', price: 4800, weekendPrice: 5300, capacity: 4, image: '/img/blue-room/blue1.jpg',
     imagesCount: 13, folder: 'blue-room', prefix: 'blue',
-    features: ['50 SQM', 'Ideal for 4 guests', '2 Queen size beds', '1 Bathroom', '6-Seater Dining Table', 'Kitchen cabinet with sink', 'Personal Ref', 'Air conditioning and WiFi', '55" Smart TV with Bluetooth speaker', 'Toiletries, towels, and bathrobe', 'Contemporary artwork', 'Parking space'] 
+    features: ['50 SQM with balcony', 'Ideal for 4 guests', '2 Queen size beds', '1 Bathroom', '6-Seater Dining Table', 'Kitchen cabinet with sink', 'Personal Ref', 'Air conditioning and WiFi', '55" Smart TV with Bluetooth speaker', 'Toiletries, towels, and bathrobe', 'Contemporary artwork', 'Parking space'] 
   },
   { 
-    id: 3, name: 'Rooftop Lounge', price: null, weekendPrice: null, capacity: 20, image: '/img/rooftop/rooftop1.jpg',
+    id: 3, name: 'Rooftop Lounge', price: 8000, weekendPrice: 10000, capacity: 20, image: '/img/rooftop/rooftop1.jpg',
     imagesCount: 13, folder: 'rooftop', prefix: 'rooftop',
     features: ['150 SQM', 'Outdoor and indoor seating', 'Bar counter', 'Dining table setup', 'Air conditioning and WiFi', '65" Smart TV with Bluetooth speaker', 'Microphone for Karaoke - available upon request', 'Contemporary artwork'] 
   },
@@ -46,11 +46,13 @@ function SmartCalendar({
   checkOut,
   onChange,
   blockedDates = [],
+  isSingleDaySelection = false,
 }: {
   checkIn: Date | null;
   checkOut: Date | null;
   onChange: (inDate: Date | null, outDate: Date | null) => void;
   blockedDates?: string[];
+  isSingleDaySelection?: boolean;
 }) {
   const [currentMonth, setCurrentMonth] = useState(getStartOfDay(new Date()));
 
@@ -86,9 +88,15 @@ function SmartCalendar({
   const handleDateClick = (clickedDate: Date) => {
     if (clickedDate < minDate) return;
 
+    if (isBlocked(clickedDate)) return;
+
+    if (isSingleDaySelection) {
+      onChange(clickedDate, addDays(clickedDate, 1));
+      return;
+    }
+
     if (!checkIn || (checkIn && checkOut)) {
       // Start new selection
-      if (isBlocked(clickedDate)) return;
       onChange(clickedDate, null);
     } else {
       // We have check-in, selecting check-out
@@ -123,13 +131,13 @@ function SmartCalendar({
       const isNightBooked = blockedDates.includes(dateStr);
       
       let isDisabled = isPastOrBuffer || isNightBooked;
-      if (checkIn && !checkOut && date > checkIn) {
+      if (!isSingleDaySelection && checkIn && !checkOut && date > checkIn) {
         isDisabled = !isValidRange(checkIn, date);
       }
 
       const isCheckIn = checkIn && formatDate(checkIn) === dateStr;
-      const isCheckOut = checkOut && formatDate(checkOut) === dateStr;
-      const isInRange = checkIn && checkOut && date > checkIn && date < checkOut;
+      const isCheckOut = !isSingleDaySelection && checkOut && formatDate(checkOut) === dateStr;
+      const isInRange = !isSingleDaySelection && checkIn && checkOut && date > checkIn && date < checkOut;
 
       let baseClasses = "relative flex h-10 w-10 items-center justify-center rounded-full text-sm transition ";
       
@@ -267,6 +275,7 @@ function BookNowContent() {
   );
   const [guestDetails, setGuestDetails] = useState({ firstName: '', lastName: '', email: '', phone: '' });
   const [paymentDetails, setPaymentDetails] = useState<{ method: string; proof: File | null; idFront: File | null; idBack: File | null }>({ method: 'gcash', proof: null, idFront: null, idBack: null });
+  const [timeSlot, setTimeSlot] = useState('');
   const [isCheckingDates, setIsCheckingDates] = useState(false);
   const [datesAvailable, setDatesAvailable] = useState(!!(searchParams.get('checkIn') && searchParams.get('checkOut')));
   const [bookingConfirmed, setBookingConfirmed] = useState(false);
@@ -345,12 +354,12 @@ function BookNowContent() {
 
   const isStep3Valid = guestDetails.firstName && guestDetails.lastName && guestDetails.email && guestDetails.phone;
   const isStep4Valid = selectedRoomId === 3 
-    ? paymentDetails.idFront && paymentDetails.idBack && purpose.trim() !== ''
+    ? paymentDetails.idFront && paymentDetails.idBack && paymentDetails.proof && purpose.trim() !== ''
     : paymentDetails.idFront && paymentDetails.idBack && paymentDetails.proof;
 
   const handleNext = () => {
     if (currentStep === 1 && !selectedRoomId) return;
-    if (currentStep === 2 && (!checkIn || !checkOut)) return;
+    if (currentStep === 2 && (!checkIn || !checkOut || (selectedRoomId === 3 && !timeSlot))) return;
     if (currentStep === 3 && !isStep3Valid) return;
     if (currentStep === 4 && !isStep4Valid) return;
     if (currentStep === 5) {
@@ -360,6 +369,8 @@ function BookNowContent() {
       
       const submitBooking = async () => {
         try {
+          const finalPurpose = selectedRoomId === 3 && timeSlot ? `${purpose}\n\nTime Slot: ${timeSlot}` : purpose;
+
           const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
           
           const response = await fetch(`${apiUrl}/api/bookings`, {
@@ -374,7 +385,7 @@ function BookNowContent() {
               checkIn: checkIn ? formatDate(checkIn) : null,
               checkOut: checkOut ? formatDate(checkOut) : null,
               totalPrice: roomTotal,
-              purpose: purpose,
+              purpose: finalPurpose,
               guests: guests
             }),
           });
@@ -410,17 +421,15 @@ function BookNowContent() {
           <div className="bg-white rounded-[32px] p-10 shadow-sm border border-brand-blue/5 mt-10">
             <svg className="w-20 h-20 text-green-500 mx-auto mb-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             <h1 className="text-4xl font-script text-brand-blue mb-4">
-              {selectedRoomId === 3 ? 'Inquiry Received!' : 'Booking Confirmed!'}
+              Booking Confirmed!
             </h1>
             <p className="text-brand-blue/70 mb-8">
-              {selectedRoomId === 3 
-                ? 'Thank you for inquiring about the Rooftop Lounge. Our team will review your event details and contact you shortly with pricing and approval.' 
-                : 'Thank you for choosing Hotel at Home. We have received your reservation.'}
+              Thank you for choosing Hotel at Home. We have received your reservation.
             </p>
             
             <div className="bg-brand-blue/5 rounded-2xl p-6 mb-8 inline-block">
               <p className="text-sm uppercase tracking-wider text-brand-blue/60 mb-2 font-semibold">
-                {selectedRoomId === 3 ? 'Your Inquiry Code' : 'Your Confirmation Code'}
+                Your Confirmation Code
               </p>
               <p className="text-3xl font-bold text-brand-blue tracking-widest">{confirmationCode}</p>
             </div>
@@ -476,6 +485,7 @@ function BookNowContent() {
                       onClick={() => {
                         setSelectedRoomId(room.id);
                         if (guests > room.capacity) setGuests(room.capacity);
+                        if (room.id !== 3) setTimeSlot('');
                       }}
                       className={`cursor-pointer overflow-hidden rounded-2xl border-2 transition-all duration-200 ${
                         selectedRoomId === room.id 
@@ -499,7 +509,7 @@ function BookNowContent() {
                         <h3 className="font-semibold">{room.name}</h3>
                         <p className="text-sm text-brand-blue/60 mt-1">Up to {room.capacity} guests</p>
                         {room.price !== null ? (
-                          <p className="font-bold text-sm mt-3 uppercase tracking-wider text-accent">From ₱{room.price.toLocaleString()} / night</p>
+                          <p className="font-bold text-sm mt-3 uppercase tracking-wider text-accent">From ₱{room.price.toLocaleString()} / {room.id === 3 ? '12-hrs' : 'night'}</p>
                         ) : (
                           <p className="font-bold text-sm mt-3 uppercase tracking-wider text-accent">TBA / night</p>
                         )}
@@ -538,6 +548,7 @@ function BookNowContent() {
                       checkIn={checkIn} 
                       checkOut={checkOut} 
                       blockedDates={blockedDates}
+                      isSingleDaySelection={selectedRoomId === 3}
                       onChange={(inD, outD) => {
                         setCheckIn(inD); 
                         setCheckOut(outD); 
@@ -556,16 +567,47 @@ function BookNowContent() {
                   </div>
                   
                   <div className="flex-1 w-full space-y-4 pt-4 md:pt-10">
-                    <div className="rounded-2xl border border-brand-blue/10 bg-brand-blue/5 p-4">
-                      <p className="text-xs font-semibold uppercase tracking-wider text-brand-blue/50 mb-1">Check-in</p>
-                      <p className="font-medium">{checkIn ? checkIn.toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric', year: 'numeric' }) : 'Select date'}</p>
-                      <p className="text-xs text-brand-blue/60 mt-1">From 2:00 PM</p>
-                    </div>
-                    <div className="rounded-2xl border border-brand-blue/10 bg-brand-blue/5 p-4">
-                      <p className="text-xs font-semibold uppercase tracking-wider text-brand-blue/50 mb-1">Check-out</p>
-                      <p className="font-medium">{checkOut ? checkOut.toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric', year: 'numeric' }) : 'Select date'}</p>
-                      <p className="text-xs text-brand-blue/60 mt-1">By 12:00 PM</p>
-                    </div>
+                    {selectedRoomId === 3 ? (
+                      <>
+                        <div className="rounded-2xl border border-brand-blue/10 bg-brand-blue/5 p-4">
+                          <p className="text-xs font-semibold uppercase tracking-wider text-brand-blue/50 mb-1">Event Date</p>
+                          <p className="font-medium">{checkIn ? checkIn.toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric', year: 'numeric' }) : 'Select date'}</p>
+                        </div>
+                        {checkIn && (
+                          <div className="rounded-2xl border border-brand-blue/10 bg-brand-blue/5 p-4 mt-4">
+                            <p className="text-xs font-semibold uppercase tracking-wider text-brand-blue/50 mb-3">Select 12-Hour Time Slot <span className="text-red-500">*</span></p>
+                            <div className="flex flex-wrap gap-2">
+                              {['08:00 AM - 08:00 PM', '10:00 AM - 10:00 PM', '02:00 PM - 02:00 AM'].map(slot => (
+                                <button
+                                  key={slot}
+                                  onClick={() => setTimeSlot(slot)}
+                                  className={`px-3 py-1.5 rounded-full border text-sm font-medium transition ${
+                                    timeSlot === slot 
+                                      ? 'bg-brand-blue text-white border-brand-blue' 
+                                      : 'bg-white text-brand-blue border-brand-blue/20 hover:border-brand-blue/40'
+                                  }`}
+                                >
+                                  {slot}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <div className="rounded-2xl border border-brand-blue/10 bg-brand-blue/5 p-4">
+                          <p className="text-xs font-semibold uppercase tracking-wider text-brand-blue/50 mb-1">Check-in</p>
+                          <p className="font-medium">{checkIn ? checkIn.toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric', year: 'numeric' }) : 'Select date'}</p>
+                          <p className="text-xs text-brand-blue/60 mt-1">From 2:00 PM</p>
+                        </div>
+                        <div className="rounded-2xl border border-brand-blue/10 bg-brand-blue/5 p-4">
+                          <p className="text-xs font-semibold uppercase tracking-wider text-brand-blue/50 mb-1">Check-out</p>
+                          <p className="font-medium">{checkOut ? checkOut.toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric', year: 'numeric' }) : 'Select date'}</p>
+                          <p className="text-xs text-brand-blue/60 mt-1">By 12:00 PM</p>
+                        </div>
+                      </>
+                    )}
                   
                     {checkIn && checkOut && (
                       <div className="mt-2 p-4 rounded-xl border border-brand-blue/10 bg-white flex items-center gap-3 w-fit">
@@ -616,55 +658,14 @@ function BookNowContent() {
             {currentStep === 4 && (
               <div className="space-y-8">
                 <h2 className="text-2xl font-semibold">
-                  {selectedRoomId === 3 ? 'Event Details & Verification' : 'Payment & Verification'}
+                  {selectedRoomId === 3 ? 'Event Details & Payment' : 'Payment & Verification'}
                 </h2>
                 
-                {selectedRoomId !== 3 ? (
-                  <>
-                    <div className="space-y-4">
-                      <p className="text-sm font-semibold uppercase tracking-wider text-brand-blue/60">1. Select Payment Method</p>
-                      <div className="grid sm:grid-cols-2 gap-4">
-                        <label className={`flex cursor-pointer items-center gap-3 rounded-xl border p-4 transition ${paymentDetails.method === 'gcash' ? 'border-brand-blue bg-brand-blue/5' : 'border-brand-blue/10 hover:border-brand-blue/30'}`}>
-                          <input type="radio" name="paymentMethod" value="gcash" checked={paymentDetails.method === 'gcash'} onChange={() => setPaymentDetails({...paymentDetails, method: 'gcash'})} className="h-4 w-4 text-brand-blue" />
-                          <span className="font-medium">GCash</span>
-                        </label>
-                        <label className={`flex cursor-pointer items-center gap-3 rounded-xl border p-4 transition ${paymentDetails.method === 'bank' ? 'border-brand-blue bg-brand-blue/5' : 'border-brand-blue/10 hover:border-brand-blue/30'}`}>
-                          <input type="radio" name="paymentMethod" value="bank" checked={paymentDetails.method === 'bank'} onChange={() => setPaymentDetails({...paymentDetails, method: 'bank'})} className="h-4 w-4 text-brand-blue" />
-                          <span className="font-medium">Bank Transfer</span>
-                        </label>
-                      </div>
-                    </div>
-
-                    {/* Payment Details Display */}
-                    {paymentDetails.method === 'gcash' && (
-                      <div className="rounded-2xl border border-brand-blue/10 bg-white p-6 shadow-sm flex flex-col sm:flex-row gap-6 items-center sm:items-start">
-                        <div className="w-32 h-32 flex-shrink-0 bg-slate-50 rounded-xl overflow-hidden border border-brand-blue/10 shadow-sm">
-                          <img src="/img/payment/gcash.jpg" alt="GCash QR Code" className="w-full h-full object-cover" />
-                        </div>
-                        <div className="space-y-2 text-center sm:text-left">
-                          <h3 className="font-semibold text-brand-blue text-lg">GCash Details</h3>
-                          <p className="text-brand-blue/80"><span className="font-semibold text-brand-blue">Name:</span> Hermilino Jr. Calubiran</p>
-                          <p className="text-brand-blue/80"><span className="font-semibold text-brand-blue">Number:</span> +63 917 887 6444</p>
-                          <p className="text-xs text-brand-blue/60 mt-2">Please scan the QR code or send to the number provided to complete your reservation payment.</p>
-                        </div>
-                      </div>
-                    )}
-
-                    {paymentDetails.method === 'bank' && (
-                      <div className="rounded-2xl border border-brand-blue/10 bg-white p-6 shadow-sm space-y-3">
-                        <h3 className="font-semibold text-brand-blue text-lg">Bank Transfer Details</h3>
-                        <p className="text-brand-blue/80"><span className="font-semibold text-brand-blue">Bank:</span> BDO Unibank, Inc.</p>
-                        <p className="text-brand-blue/80"><span className="font-semibold text-brand-blue">Account Name:</span> Hermilino Calubiran, Jr.</p>
-                        <p className="text-brand-blue/80"><span className="font-semibold text-brand-blue">Account Number:</span> 010100143296</p>
-                        <p className="text-xs text-brand-blue/60 mt-2">Please transfer the total amount to the bank account provided.</p>
-                      </div>
-                    )}
-                  </>
-                ) : (
+                {selectedRoomId === 3 && (
                   <div className="space-y-4">
-                    <p className="text-sm font-semibold uppercase tracking-wider text-brand-blue/60">1. Event Purpose & Details <span className="text-red-500">*</span></p>
+                    <p className="text-sm font-semibold uppercase tracking-wider text-brand-blue/60">Event Purpose & Details <span className="text-red-500">*</span></p>
                     <div className="rounded-xl border border-brand-blue/10 bg-white p-4">
-                      <p className="text-xs text-brand-blue/60 mb-3">Because Rooftop Lounge pricing depends on the event type, please specify the purpose of your booking (e.g., Birthday Party, Corporate Meeting, casual hangout) and any specific setup requirements.</p>
+                      <p className="text-xs text-brand-blue/60 mb-3">Please specify the purpose of your booking (e.g., Birthday Party, Corporate Meeting, casual hangout) and any specific setup requirements.</p>
                       <textarea 
                         value={purpose}
                         onChange={(e) => setPurpose(e.target.value)}
@@ -676,22 +677,59 @@ function BookNowContent() {
                   </div>
                 )}
 
+                <div className="space-y-4">
+                  <p className="text-sm font-semibold uppercase tracking-wider text-brand-blue/60">1. Select Payment Method</p>
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <label className={`flex cursor-pointer items-center gap-3 rounded-xl border p-4 transition ${paymentDetails.method === 'gcash' ? 'border-brand-blue bg-brand-blue/5' : 'border-brand-blue/10 hover:border-brand-blue/30'}`}>
+                      <input type="radio" name="paymentMethod" value="gcash" checked={paymentDetails.method === 'gcash'} onChange={() => setPaymentDetails({...paymentDetails, method: 'gcash'})} className="h-4 w-4 text-brand-blue" />
+                      <span className="font-medium">GCash</span>
+                    </label>
+                    <label className={`flex cursor-pointer items-center gap-3 rounded-xl border p-4 transition ${paymentDetails.method === 'bank' ? 'border-brand-blue bg-brand-blue/5' : 'border-brand-blue/10 hover:border-brand-blue/30'}`}>
+                      <input type="radio" name="paymentMethod" value="bank" checked={paymentDetails.method === 'bank'} onChange={() => setPaymentDetails({...paymentDetails, method: 'bank'})} className="h-4 w-4 text-brand-blue" />
+                      <span className="font-medium">Bank Transfer</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Payment Details Display */}
+                {paymentDetails.method === 'gcash' && (
+                  <div className="rounded-2xl border border-brand-blue/10 bg-white p-6 shadow-sm flex flex-col sm:flex-row gap-6 items-center sm:items-start">
+                    <div className="w-32 h-32 flex-shrink-0 bg-slate-50 rounded-xl overflow-hidden border border-brand-blue/10 shadow-sm">
+                      <img src="/img/payment/gcash.jpg" alt="GCash QR Code" className="w-full h-full object-cover" />
+                    </div>
+                    <div className="space-y-2 text-center sm:text-left">
+                      <h3 className="font-semibold text-brand-blue text-lg">GCash Details</h3>
+                      <p className="text-brand-blue/80"><span className="font-semibold text-brand-blue">Name:</span> Hermilino Jr. Calubiran</p>
+                      <p className="text-brand-blue/80"><span className="font-semibold text-brand-blue">Number:</span> +63 917 887 6444</p>
+                      <p className="text-xs text-brand-blue/60 mt-2">Please scan the QR code or send to the number provided to complete your reservation payment.</p>
+                    </div>
+                  </div>
+                )}
+
+                {paymentDetails.method === 'bank' && (
+                  <div className="rounded-2xl border border-brand-blue/10 bg-white p-6 shadow-sm space-y-3">
+                    <h3 className="font-semibold text-brand-blue text-lg">Bank Transfer Details</h3>
+                    <p className="text-brand-blue/80"><span className="font-semibold text-brand-blue">Bank:</span> BDO Unibank, Inc.</p>
+                    <p className="text-brand-blue/80"><span className="font-semibold text-brand-blue">Account Name:</span> Hermilino Calubiran, Jr.</p>
+                    <p className="text-brand-blue/80"><span className="font-semibold text-brand-blue">Account Number:</span> 010100143296</p>
+                    <p className="text-xs text-brand-blue/60 mt-2">Please transfer the total amount to the bank account provided.</p>
+                  </div>
+                )}
+
                 <div className="space-y-6">
                   <p className="text-sm font-semibold uppercase tracking-wider text-brand-blue/60">2. Upload Requirements <span className="text-red-500">*</span></p>
                   
-                  {selectedRoomId !== 3 && (
-                    <div className="rounded-xl border border-brand-blue/10 p-4">
-                      <p className="block font-medium mb-1">Payment Screenshot</p>
-                      <p className="text-xs text-brand-blue/60 mb-3">Please upload a clear screenshot of your successful transaction.</p>
-                      <div className="flex items-center gap-3">
-                        <label className="cursor-pointer rounded-full bg-brand-blue/10 px-4 py-2 text-xs font-semibold text-brand-blue transition hover:bg-brand-blue/20">
-                          Choose File
-                          <input type="file" accept="image/*" onChange={e => setPaymentDetails({...paymentDetails, proof: e.target.files?.[0] || null})} className="hidden" />
-                        </label>
-                        <span className="text-sm text-brand-blue/70">{paymentDetails.proof ? paymentDetails.proof.name : <span className="text-red-500 text-lg leading-none">*</span>}</span>
-                      </div>
+                  <div className="rounded-xl border border-brand-blue/10 p-4">
+                    <p className="block font-medium mb-1">Payment Screenshot</p>
+                    <p className="text-xs text-brand-blue/60 mb-3">Please upload a clear screenshot of your successful transaction.</p>
+                    <div className="flex items-center gap-3">
+                      <label className="cursor-pointer rounded-full bg-brand-blue/10 px-4 py-2 text-xs font-semibold text-brand-blue transition hover:bg-brand-blue/20">
+                        Choose File
+                        <input type="file" accept="image/*" onChange={e => setPaymentDetails({...paymentDetails, proof: e.target.files?.[0] || null})} className="hidden" />
+                      </label>
+                      <span className="text-sm text-brand-blue/70">{paymentDetails.proof ? paymentDetails.proof.name : <span className="text-red-500 text-lg leading-none">*</span>}</span>
                     </div>
-                  )}
+                  </div>
 
                   <div className="rounded-xl border border-brand-blue/10 p-4">
                     <p className="block font-medium mb-1">Valid ID (Front)</p>
@@ -785,18 +823,18 @@ function BookNowContent() {
                 onClick={handleNext}
                 disabled={
                   (currentStep === 1 && !selectedRoomId) ||
-                  (currentStep === 2 && (!checkIn || !checkOut || isCheckingDates || !datesAvailable)) ||
+                  (currentStep === 2 && (!checkIn || !checkOut || isCheckingDates || !datesAvailable || (selectedRoomId === 3 && !timeSlot))) ||
                   (currentStep === 3 && !isStep3Valid) ||
                   (currentStep === 4 && !isStep4Valid) ||
                   (currentStep === 5 && (!agreedToRules || isSubmitting))
                 }
                 className={`px-8 py-2.5 rounded-full font-semibold text-sm transition ${
-                  ((currentStep === 1 && !selectedRoomId) || (currentStep === 2 && (!checkIn || !checkOut || isCheckingDates || !datesAvailable)) || (currentStep === 3 && !isStep3Valid) || (currentStep === 4 && !isStep4Valid) || (currentStep === 5 && (!agreedToRules || isSubmitting)))
+                  ((currentStep === 1 && !selectedRoomId) || (currentStep === 2 && (!checkIn || !checkOut || isCheckingDates || !datesAvailable || (selectedRoomId === 3 && !timeSlot))) || (currentStep === 3 && !isStep3Valid) || (currentStep === 4 && !isStep4Valid) || (currentStep === 5 && (!agreedToRules || isSubmitting)))
                     ? 'bg-brand-blue/30 text-white cursor-not-allowed'
                     : 'bg-brand-blue text-white hover:bg-[#001a72] shadow-sm'
                 }`}
               >
-                {currentStep === 5 ? (isSubmitting ? 'Submitting...' : (selectedRoomId === 3 ? 'Submit Inquiry' : 'Confirm Booking')) : 'Continue'}
+                {currentStep === 5 ? (isSubmitting ? 'Submitting...' : 'Confirm Booking') : 'Continue'}
               </button>
             </div>
           </div>
@@ -825,22 +863,38 @@ function BookNowContent() {
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-white/60 mb-1 uppercase tracking-wider text-xs">Check-in</p>
-                  <p className="font-medium">{checkIn ? checkIn.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '--'}</p>
+              {selectedRoomId === 3 ? (
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-white/60 mb-1 uppercase tracking-wider text-xs">Event Date</p>
+                    <p className="font-medium">{checkIn ? checkIn.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '--'}</p>
+                  </div>
+                  {timeSlot && (
+                    <div>
+                      <p className="text-white/60 mb-1 uppercase tracking-wider text-xs">Time Slot (12 Hrs)</p>
+                      <p className="font-medium">{timeSlot}</p>
+                    </div>
+                  )}
                 </div>
-                <div>
-                  <p className="text-white/60 mb-1 uppercase tracking-wider text-xs">Check-out</p>
-                  <p className="font-medium">{checkOut ? checkOut.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '--'}</p>
+              ) : (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-white/60 mb-1 uppercase tracking-wider text-xs">Check-in</p>
+                      <p className="font-medium">{checkIn ? checkIn.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '--'}</p>
+                    </div>
+                    <div>
+                      <p className="text-white/60 mb-1 uppercase tracking-wider text-xs">Check-out</p>
+                      <p className="font-medium">{checkOut ? checkOut.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '--'}</p>
+                    </div>
+                  </div>
+                  {nights > 0 && (
+                     <div>
+                       <p className="text-white/60 mb-1 uppercase tracking-wider text-xs">Duration</p>
+                       <p className="font-medium">{nights} Night{nights > 1 ? 's' : ''}</p>
+                     </div>
+                  )}
                 </div>
-              </div>
-
-              {nights > 0 && (
-                 <div>
-                   <p className="text-white/60 mb-1 uppercase tracking-wider text-xs">Duration</p>
-                   <p className="font-medium">{nights} Night{nights > 1 ? 's' : ''}</p>
-                 </div>
               )}
 
               <div className="border-t border-white/10 pt-6 mt-6">
@@ -850,7 +904,7 @@ function BookNowContent() {
                     {roomTotal !== null ? `₱${roomTotal.toLocaleString()}` : 'TBA'}
                   </span>
                 </div>
-                {selectedRoomId !== 3 && roomTotal !== null && (
+                {roomTotal !== null && (
                    <p className="text-right text-xs text-white/50 mt-1">Taxes and fees included</p>
                 )}
               </div>
