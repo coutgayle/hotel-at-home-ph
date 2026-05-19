@@ -59,7 +59,7 @@ const faqs = [
   },
   {
     question: 'Is breakfast included?',
-    answer: 'Breakfast is not currently included. For your convenience, complimentary coffee with sugar and creamer, chocolate drinks and tea are available in the room. For a full breakfast, Tagaytay also offers many excellent cafés and breakfast spots nearby.'
+    answer: 'Yes, complimentary breakfast is included with your stay. A breakfast menu will be provided in your room, and we encourage guests to pre-order their meals ahead of time. Please also inform us of any dietary preferences or food allergies so we can prepare accordingly.'
   },
   {
     question: 'Are pets allowed?',
