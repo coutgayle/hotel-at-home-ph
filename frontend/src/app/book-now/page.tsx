@@ -1,4 +1,4 @@
-﻿﻿﻿﻿'use client';
+﻿﻿﻿﻿﻿﻿'use client';
 import React, { useState, Suspense, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -354,7 +354,12 @@ function BookNowContent() {
     }
   }
 
-  const isStep3Valid = guestDetails.firstName && guestDetails.lastName && guestDetails.email && guestDetails.phone;
+  const isStep3Valid = 
+    guestDetails.firstName.replace(/[^a-zA-Z]/g, '').length >= 2 && 
+    guestDetails.lastName.trim() !== '' && 
+    guestDetails.email.trim() !== '' && 
+    /^\d{11}$/.test(guestDetails.phone);
+
   const isStep4Valid = selectedRoomId === 3 
     ? paymentDetails.idFront && paymentDetails.idBack && paymentDetails.proof && purpose.trim() !== ''
     : paymentDetails.idFront && paymentDetails.idBack && paymentDetails.proof;
@@ -663,6 +668,9 @@ function BookNowContent() {
                   <div>
                     <label className="block text-xs font-semibold uppercase tracking-wider text-brand-blue/60 mb-2">First Name *</label>
                     <input type="text" value={guestDetails.firstName} onChange={e => setGuestDetails({...guestDetails, firstName: e.target.value})} className="w-full rounded-xl border border-brand-blue/10 bg-white px-4 py-3 outline-none focus:border-brand-blue transition" placeholder="Juan" />
+                    {guestDetails.firstName && guestDetails.firstName.replace(/[^a-zA-Z]/g, '').length < 2 && (
+                      <p className="text-red-500 text-[10px] mt-1 font-medium">Must contain at least 2 letters.</p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-xs font-semibold uppercase tracking-wider text-brand-blue/60 mb-2">Last Name *</label>
@@ -674,7 +682,21 @@ function BookNowContent() {
                   </div>
                   <div className="sm:col-span-2">
                     <label className="block text-xs font-semibold uppercase tracking-wider text-brand-blue/60 mb-2">Contact Number *</label>
-                    <input type="tel" value={guestDetails.phone} onChange={e => setGuestDetails({...guestDetails, phone: e.target.value})} className="w-full rounded-xl border border-brand-blue/10 bg-white px-4 py-3 outline-none focus:border-brand-blue transition" placeholder="0912 345 6789" />
+                    <input 
+                      type="tel" 
+                      value={guestDetails.phone} 
+                      onChange={e => {
+                        const onlyDigits = e.target.value.replace(/\D/g, '');
+                        if (onlyDigits.length <= 11) {
+                          setGuestDetails({...guestDetails, phone: onlyDigits});
+                        }
+                      }} 
+                      className="w-full rounded-xl border border-brand-blue/10 bg-white px-4 py-3 outline-none focus:border-brand-blue transition" 
+                      placeholder="09123456789" 
+                    />
+                    {guestDetails.phone && guestDetails.phone.length < 11 && (
+                      <p className="text-red-500 text-[10px] mt-1 font-medium">Must be exactly 11 digits.</p>
+                    )}
                   </div>
                 </div>
               </div>
