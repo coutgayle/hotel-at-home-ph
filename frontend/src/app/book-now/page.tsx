@@ -437,11 +437,10 @@ function BookNowContent() {
             </div>
             
             <p className="text-sm text-brand-blue/70">
-              Please save this code. You can use it in the &quot;View Booking&quot; feature to check your status.
+              Please save this code for your reference.
             </p>
             
             <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link href="/view-booking" className="inline-flex w-full sm:w-auto justify-center rounded-full bg-brand-blue px-8 py-3 text-sm font-semibold text-white transition hover:bg-[#001a72]">View Status</Link>
               <Link href="/" className="inline-flex w-full sm:w-auto justify-center rounded-full bg-brand-blue/10 px-8 py-3 text-sm font-semibold text-brand-blue transition hover:bg-brand-blue/20">Return Home</Link>
             </div>
           </div>
@@ -459,14 +458,8 @@ function BookNowContent() {
 
       <div className="mx-auto max-w-7xl px-6">
         <div className="mb-12 text-center relative">
-          <div className="absolute right-0 top-0 hidden sm:block">
-            <Link href="/view-booking" className="text-sm font-semibold text-brand-blue hover:text-accent underline transition">View Booking</Link>
-          </div>
           <h1 className="text-4xl font-script text-brand-blue md:text-5xl">Book Your Stay</h1>
           <p className="mt-3 text-brand-blue/70">Complete your reservation in just a few simple steps</p>
-          <div className="mt-4 sm:hidden">
-            <Link href="/view-booking" className="text-sm font-semibold text-brand-blue hover:text-accent underline transition">View Booking</Link>
-          </div>
         </div>
 
         <ProgressBar currentStep={currentStep} />

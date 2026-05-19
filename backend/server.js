@@ -134,29 +134,6 @@ app.post('/api/bookings', async (req, res) => {
   }
 });
 
-// 3. Get a booking by confirmation code
-app.get('/api/bookings/:code', async (req, res) => {
-  try {
-    const { code } = req.params;
-    const { email } = req.query;
-
-    if (!email) {
-      return res.status(400).json({ error: 'Email address is required to view your booking.' });
-    }
-
-    const [rows] = await pool.query('SELECT * FROM bookings WHERE confirmation_code = ? AND guest_email = ?', [code, email]);
-    
-    if (rows.length === 0) {
-      return res.status(404).json({ error: 'Booking not found or email does not match.' });
-    }
-    
-    res.json(rows[0]);
-  } catch (error) {
-    console.error('Error fetching booking:', error);
-    res.status(500).json({ error: 'Failed to fetch booking' });
-  }
-});
-
 // 4. Get blocked dates for a specific room
 app.get('/api/bookings/dates/:roomId', async (req, res) => {
   try {
