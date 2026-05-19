@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
@@ -20,11 +19,9 @@ export default function Header() {
     <header className="sticky top-0 z-50 w-full border-b border-primary-dark/10 bg-[#fefefe] shadow-lg">
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6">
         <Link href="/" className="flex items-center gap-2 text-2xl font-semibold text-accent transition hover:text-accent/80">
-          <Image
+          <img
             src="/img/logo/hhlogo.png"
             alt="HH logo"
-            width={74}
-            height={74}
             className="h-[74px] w-[74px] object-contain"
           />
         </Link>
