@@ -28,7 +28,8 @@ app.use(cors({
     }
   }
 })); 
-app.use(express.json()); // Parses incoming JSON requests
+app.use(express.json({ limit: '50mb' })); // Parses incoming JSON requests, increased limit for image uploads
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Email Transporter Setup
 const transporter = nodemailer.createTransport({
