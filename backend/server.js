@@ -62,7 +62,8 @@ app.post('/api/bookings', async (req, res) => {
   try {
     const {
       roomId, guestFirstName, guestLastName, guestEmail, guestPhone,
-      checkIn, checkOut, totalPrice, purpose, guests
+      checkIn, checkOut, totalPrice, purpose, guests,
+      proofBase64, idFrontBase64, idBackBase64
     } = req.body;
 
     // --- OVERLAP VALIDATION ---
@@ -105,11 +106,17 @@ app.post('/api/bookings', async (req, res) => {
         else if (parseInt(roomId) === 2) roomName = 'Blue Room';
         else if (parseInt(roomId) === 3) roomName = 'Rooftop Lounge';
         
+        const attachments = [];
+        if (proofBase64) attachments.push({ filename: 'payment_proof.jpg', path: proofBase64 });
+        if (idFrontBase64) attachments.push({ filename: 'id_front.jpg', path: idFrontBase64 });
+        if (idBackBase64) attachments.push({ filename: 'id_back.jpg', path: idBackBase64 });
+
         const mailOptionsAdmin = {
           from: process.env.EMAIL_USER,
           to: 'hotelathome.ph@gmail.com', // Admin Email
           subject: `New Booking Received: ${confirmationCode}`,
-          text: `A new booking has been made!\n\nConfirmation Code: ${confirmationCode}\nRoom ID: ${roomId} (${roomName})\nGuest: ${guestFirstName} ${guestLastName}\nEmail: ${guestEmail}\nPhone: ${guestPhone}\nCheck-in: ${checkIn}\nCheck-out: ${checkOut}\nGuests: ${guests || 1}\nTotal Price: ₱${totalPrice}\nPurpose/Notes: ${purpose || 'N/A'}`
+          text: `A new booking has been made!\n\nConfirmation Code: ${confirmationCode}\nRoom ID: ${roomId} (${roomName})\nGuest: ${guestFirstName} ${guestLastName}\nEmail: ${guestEmail}\nPhone: ${guestPhone}\nCheck-in: ${checkIn}\nCheck-out: ${checkOut}\nGuests: ${guests || 1}\nTotal Price: ₱${totalPrice}\nPurpose/Notes: ${purpose || 'N/A'}`,
+          attachments
         };
         
         const mailOptionsGuest = {
@@ -177,7 +184,28 @@ app.get('/api/admin/bookings', async (req, res) => {
   }
 });
 
-// 6. Debug route to verify Hostinger paths
+// 6. Admin Dashboard: Update booking status
+app.patch('/api/admin/bookings/:id/status', async (req, res) => {
+  const apiKey = req.headers['x-api-key'];
+  const validPassword = process.env.ADMIN_SECRET || 'hotelathomeadmin';
+
+  if (!apiKey || apiKey !== validPassword) {
+    return res.status(401).json({ error: 'Unauthorized. Invalid admin password.' });
+  }
+
+  const { id } = req.params;
+  const { status } = req.body;
+
+  try {
+    await pool.query('UPDATE bookings SET status = ? WHERE id = ?', [status, id]);
+    res.json({ success: true, message: 'Status updated successfully' });
+  } catch (error) {
+    console.error('Error updating status:', error);
+    res.status(500).json({ error: 'Failed to update status' });
+  }
+});
+
+// 7. Debug route to verify Hostinger paths
 app.get('/api/debug', (req, res) => {
   const fs = require('fs');
   const rootDir = __dirname.endsWith('backend') ? path.resolve(__dirname, '..') : process.cwd();

@@ -371,6 +371,17 @@ function BookNowContent() {
       
       const submitBooking = async () => {
         try {
+          const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = error => reject(error);
+          });
+
+          const proofBase64 = paymentDetails.proof ? await toBase64(paymentDetails.proof) : null;
+          const idFrontBase64 = paymentDetails.idFront ? await toBase64(paymentDetails.idFront) : null;
+          const idBackBase64 = paymentDetails.idBack ? await toBase64(paymentDetails.idBack) : null;
+
           const finalPurpose = selectedRoomId === 3 && timeSlot ? `${purpose}\n\nTime Slot: ${timeSlot}` : purpose;
 
           const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
@@ -388,7 +399,10 @@ function BookNowContent() {
               checkOut: checkOut ? formatDate(checkOut) : null,
               totalPrice: roomTotal,
               purpose: finalPurpose,
-              guests: guests
+              guests: guests,
+              proofBase64,
+              idFrontBase64,
+              idBackBase64
             }),
           });
           
