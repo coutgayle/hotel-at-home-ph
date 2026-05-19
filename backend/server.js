@@ -157,7 +157,27 @@ app.get('/api/bookings/dates/:roomId', async (req, res) => {
   }
 });
 
-// 5. Debug route to verify Hostinger paths
+// 5. Admin Dashboard: Get all bookings (Secured by ADMIN_SECRET)
+app.get('/api/admin/bookings', async (req, res) => {
+  const apiKey = req.headers['x-api-key'];
+  
+  // Use environment variable if set, otherwise fallback to default password
+  const validPassword = process.env.ADMIN_SECRET || 'hotelathomeadmin';
+
+  if (!apiKey || apiKey !== validPassword) {
+    return res.status(401).json({ error: 'Unauthorized. Invalid admin password.' });
+  }
+
+  try {
+    const [rows] = await pool.query('SELECT * FROM bookings ORDER BY id DESC');
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching admin bookings:', error);
+    res.status(500).json({ error: 'Failed to fetch bookings' });
+  }
+});
+
+// 6. Debug route to verify Hostinger paths
 app.get('/api/debug', (req, res) => {
   const fs = require('fs');
   const rootDir = __dirname.endsWith('backend') ? path.resolve(__dirname, '..') : process.cwd();
