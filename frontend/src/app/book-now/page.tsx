@@ -88,15 +88,15 @@ function SmartCalendar({
   const handleDateClick = (clickedDate: Date) => {
     if (clickedDate < minDate) return;
 
-    if (isBlocked(clickedDate)) return;
-
     if (isSingleDaySelection) {
+      if (isBlocked(clickedDate)) return;
       onChange(clickedDate, addDays(clickedDate, 1));
       return;
     }
 
     if (!checkIn || (checkIn && checkOut)) {
-      // Start new selection
+      // Start new selection (must not be a blocked date)
+      if (isBlocked(clickedDate)) return;
       onChange(clickedDate, null);
     } else {
       // We have check-in, selecting check-out
