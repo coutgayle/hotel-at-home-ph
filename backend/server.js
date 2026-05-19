@@ -320,6 +320,28 @@ app.patch('/api/admin/bookings/:id/status', async (req, res) => {
   }
 });
 
+// 8. Public: Get booking status by confirmation code
+app.get('/api/bookings/status/:code', async (req, res) => {
+  try {
+    const { code } = req.params;
+    
+    // We only select non-sensitive data (excluding phone numbers, emails, etc.)
+    const [rows] = await pool.query(
+      'SELECT confirmation_code, guest_first_name, guest_last_name, room_id, check_in, check_out, total_price, status, purpose FROM bookings WHERE confirmation_code = ? LIMIT 1',
+      [code]
+    );
+    
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Booking not found. Please check your confirmation code.' });
+    }
+    
+    res.json(rows[0]);
+  } catch (error) {
+    console.error('Error fetching booking status:', error);
+    res.status(500).json({ error: 'Failed to fetch booking details.' });
+  }
+});
+
 // 7. Debug route to verify Hostinger paths
 app.get('/api/debug', (req, res) => {
   const fs = require('fs');
