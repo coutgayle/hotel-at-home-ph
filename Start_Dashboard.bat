@@ -1,4 +1,7 @@
 @echo off
+echo Closing any existing background servers...
+taskkill /F /IM node.exe >nul 2>&1
+
 echo Starting Hotel at Home Dashboard for Client...
 echo Please wait a few seconds while the system loads...
 
@@ -8,8 +11,9 @@ start /min cmd /c "npm run dev"
 
 :: Go to frontend and start the frontend server in a minimized window
 cd ../frontend
-start /min cmd /c "npm run dev"
+:: Clear stuck cache and force Next.js to use port 3005 to prevent Windows conflicts
+start /min cmd /c "rmdir /s /q .next & npm run dev -- -p 3005"
 
-:: Wait 5 seconds for the servers to boot up, then open the browser
-timeout /t 5 >nul
-start http://localhost:3000/hh-admin
+:: Wait 8 seconds for the servers to fully boot up, then open the browser
+timeout /t 8 >nul
+start http://localhost:3005/portal

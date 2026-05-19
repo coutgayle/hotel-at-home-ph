@@ -13,7 +13,7 @@ const quickLinks = [
 
 export default function Footer() {
   const pathname = usePathname();
-  if (pathname === '/view-booking') return null;
+  if (pathname === '/view-booking' || (pathname && pathname.includes('/portal'))) return null;
 
   return (
     <footer className="bg-[#02136a] text-brand-white">

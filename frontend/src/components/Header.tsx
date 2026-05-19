@@ -15,6 +15,11 @@ export default function Header() {
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  // Safely hide the header on the admin dashboard
+  if (pathname && pathname.includes('/portal')) {
+    return null;
+  }
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-primary-dark/10 bg-[#fefefe] shadow-lg">
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6">
