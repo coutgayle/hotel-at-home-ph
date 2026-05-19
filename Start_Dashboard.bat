@@ -12,4 +12,4 @@ start /min cmd /c "npm run dev"
 
 :: Wait 5 seconds for the servers to boot up, then open the browser
 timeout /t 5 >nul
-start http://localhost:3000/admin
+start http://localhost:3000/hh-admin

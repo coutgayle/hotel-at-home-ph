@@ -1,178 +1,214 @@
-const faqs = [
-  {
-    question: 'What do we offer?',
-    answer:
-      'Elegantly designed rooms for rent with a rooftop lounge exclusive to hotel guests. The rooftop lounge may also be rented for small events subject to prior arrangements.'
-  },
-  {
-    question: 'Are walk-in guests allowed?',
-    answer: 'No. Prior booking is required.'
-  },
-  {
-    question: 'How many guests can the rooms accommodate?',
-    answer:
-      'Gold Room is ideal for a couple and can accommodate 2 guests. Blue room is ideal for a small family or group and can accommodate 4 guests.'
-  },
-  {
-    question: 'What is the set-up of the building?',
-    answer:
-      'The building is a mixed-used residential and commercial property. The rented rooms are located on the third floor of a walk-up building (no elevator). The rooftop lounge is located on the fourth floor. Our guests appreciate the added privacy this elevated location provides.'
-  },
-  {
-    question: 'How far is the place from Tagaytay?',
-    answer:
-      'Hotel at Home is approximately 5–15 minutes from Tagaytay, depending on traffic.'
-  },
-  {
-    question: 'Is parking available?',
-    answer: 'Yes, 1 free parking slot per room booked is available for guests during their stay.'
-  },
-  {
-    question: 'What amenities are included in the unit?',
-    answer: (
-      <>
-        <strong>Room Amenities</strong><br />
-        Basic Toiletries – shampoo, bath gel, toothpaste, toothbrush, vanity kit, shower cap<br />
-        Towels, bathrobe, slippers, hair dryer<br />
-        Personal refrigerator<br />
-        Aircon<br />
-        Wi-fi<br />
-        55” Smart TV with Bluetooth Speaker<br />
-        Hot Shower<br />
-        Humidifier<br />
-        Flat Iron and Ironing Board, steamer – available upon request<br />
-        <br />
-        <strong>Rooftop Lounge</strong><br />
-        Dining area – Indoor and outdoor<br />
-        Wine and liquor – By pre-order upon check in. Outside alcoholic drinks are subject to ₱500 corkage fee per bottle (wine/liquor)<br />
-        65” Smart TV with Bluetooth speaker<br />
-        Microphone for Karaoke – by request
-      </>
-    )
-  },
-  {
-    question: 'Can we cook or bring food?',
-    answer:
-      'Guests are welcome to bring outside food and enjoy their meals in the room or at the private rooftop lounge. To help maintain the space and furnishings, cooking inside the room and at the rooftop lounge is not allowed. If you’d like to explore local dining, Tagaytay’s restaurants and cafés are just a short drive away.'
-  },
-  {
-    question: 'Is breakfast included?',
-    answer: 'Breakfast is not currently included. For your convenience, complimentary coffee with sugar and creamer, chocolate drinks and tea are available in the room. For a full breakfast, Tagaytay also offers many excellent cafés and breakfast spots nearby.'
-  },
-  {
-    question: 'Are pets allowed?',
-    answer:
-      'For the comfort and safety of all guests, pets are not allowed inside the building. However, a nearby pet hotel is available, subject to a separate fee.'
-  },
-  {
-    question: 'Is smoking allowed?',
-    answer:
-      'Smoking and vaping is not allowed inside the rooms and in enclosed areas within the rooftop lounge. Designated open areas in the rooftop lounge are provided for smoking.'
-  },
-  {
-    question: 'Can I host small events or workshops?',
-    answer:
-      'Small gatherings such as intimate dinners, creative workshops, or celebrations may be allowed on the rooftop lounge subject to additional charges and considering the maximum number of guests allowed. Please contact us in advance so we can discuss your plans and ensure the setup works for your group.'
-  },
-  {
-    question: 'Can I request extra amenities or services?',
-    answer:
-      'Depending on availability, additional amenities such as extra pillows, blankets, or event setups may be provided. Please contact us in advance to coordinate your needs.'
-  },
-  {
-    question: 'Is housekeeping provided?',
-    answer:
-      'Housekeeping services are available upon request. Additional charges may apply for extended stays.'
+'use client';
+
+import React, { useState, useEffect } from 'react';
+
+export default function AdminDashboard() {
+  const [password, setPassword] = useState('');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [bookings, setBookings] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  // Attempt to auto-login if password is saved in session
+  useEffect(() => {
+    const savedPwd = sessionStorage.getItem('admin_pwd');
+    if (savedPwd) {
+      setPassword(savedPwd);
+      fetchBookings(savedPwd);
+    }
+  }, []);
+
+  const fetchBookings = async (pwd: string) => {
+    setLoading(true);
+    setError('');
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+      const res = await fetch(`${apiUrl}/api/admin/bookings`, {
+        headers: {
+          'x-api-key': pwd
+        }
+      });
+      const data = await res.json();
+      
+      if (res.ok) {
+        setBookings(data);
+        setIsAuthenticated(true);
+        sessionStorage.setItem('admin_pwd', pwd); // Save session
+      } else {
+        setError(data.error || 'Access Denied. Incorrect password.');
+        sessionStorage.removeItem('admin_pwd');
+      }
+    } catch (err) {
+      setError('Network error. Ensure the backend is running.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    fetchBookings(password);
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setPassword('');
+    setBookings([]);
+    sessionStorage.removeItem('admin_pwd');
+  };
+
+  const updateStatus = async (id: number, newStatus: string) => {
+    if (!confirm(`Are you sure you want to mark this booking as ${newStatus.toUpperCase()}?`)) return;
+    
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+      const res = await fetch(`${apiUrl}/api/admin/bookings/${id}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': password
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+      
+      if (res.ok) {
+        fetchBookings(password); // Refresh the table
+      } else {
+        alert('Failed to update status.');
+      }
+    } catch (err) {
+      alert('Network error while updating status.');
+    }
+  };
+
+  const getRoomName = (roomId: number) => {
+    switch (roomId) {
+      case 1: return 'Gold Room';
+      case 2: return 'Blue Room';
+      case 3: return 'Rooftop Lounge';
+      default: return 'Unknown';
+    }
+  };
+
+  // Format date to local string
+  const displayDate = (dateStr: string) => {
+    if (!dateStr) return '--';
+    return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
+  // --- LOGIN SCREEN ---
+  if (!isAuthenticated) {
+    return (
+      <main className="min-h-screen bg-gray-100 flex items-center justify-center p-6 font-sans">
+        <div className="bg-white p-8 rounded border border-gray-300 shadow-sm w-full max-w-sm">
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-gray-800">Admin Login</h1>
+            <p className="text-sm text-gray-500 mt-1">Enter your master password to continue.</p>
+          </div>
+          <form onSubmit={handleLogin} className="space-y-4">
+            <input 
+              type="password" 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Password" 
+              className="w-full border border-gray-300 p-2 focus:outline-none focus:border-blue-500 rounded"
+              required
+            />
+            {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+            <button 
+              type="submit" 
+              disabled={loading}
+              className="w-full bg-blue-600 text-white rounded p-2 font-medium hover:bg-blue-700 transition disabled:opacity-50"
+            >
+              {loading ? 'Verifying...' : 'Login'}
+            </button>
+          </form>
+        </div>
+      </main>
+    );
   }
-];
 
-export default function FAQsPage() {
+  // --- DASHBOARD SCREEN ---
   return (
-    <main className="bg-brand-white text-brand-blue">
-      <section className="px-6 py-16">
-        <div className="mx-auto max-w-3xl">
-          {/* Header */}
-          <div className="text-center">
-            <h1 className="font-script text-5xl leading-tight text-brand-blue sm:text-6xl">
-              Frequently Asked Questions
-            </h1>
-            <p className="mt-4 text-sm text-brand-blue/70 sm:text-base">
-              Find answers to common questions about{' '}
-              <span className="font-script text-[1.5em] text-brand-yellow drop-shadow-[2px_2px_2px_rgba(0,0,0,0.15)]">Hotel at Home</span>
-            </p>
+    <main className="min-h-screen bg-gray-50 p-4 sm:p-8 font-sans">
+      <div className="max-w-[90rem] mx-auto">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-800">Admin Dashboard</h1>
+            <p className="text-sm text-gray-500 mt-1">Total Bookings: {bookings.length}</p>
           </div>
-
-          {/* FAQ list */}
-          <div className="mt-10 space-y-3">
-            {faqs.map((item, index) => (
-              <details
-                key={item.question}
-                open={index === 0}
-                className="group rounded-xl border border-brand-blue/15 bg-brand-white px-5 py-3 shadow-sm transition open:shadow-md"
-              >
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-medium text-brand-blue marker:hidden">
-                  <span>{item.question}</span>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="h-4 w-4 shrink-0 text-brand-blue/60 transition-transform duration-200 group-open:rotate-180"
-                  >
-                    <polyline points="6 9 12 15 18 9" />
-                  </svg>
-                </summary>
-                <p className="mt-3 text-sm leading-6 text-brand-blue/70">
-                  {item.answer}
-                </p>
-              </details>
-            ))}
-          </div>
-
-          {/* Still have questions */}
-          <div className="mt-10 rounded-xl border border-brand-blue/15 bg-brand-white px-6 py-8 text-center shadow-sm">
-            <h2 className="font-script text-3xl text-brand-blue sm:text-4xl">
-              Still Have Questions?
-            </h2>
-            <p className="mt-3 text-sm text-brand-blue/70">
-              Our team is here to help! Get in touch with us through any of these channels:
-            </p>
-            <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
-              <a
-                href="tel:09189230346"
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-brand-blue px-5 py-2.5 text-xs font-semibold text-brand-white transition hover:bg-[#001a72]"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-3.5 w-3.5">
-                  <path d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
-                </svg>
-                Call Us
-              </a>
-              <a
-              href="mailto:hotelathome.ph@gmail.com"
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-brand-yellow px-5 py-2.5 text-xs font-semibold text-brand-blue transition hover:brightness-95"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5">
-                  <rect x="3" y="5" width="18" height="14" rx="2" />
-                  <path d="m3 7 9 6 9-6" />
-                </svg>
-                Email Us
-              </a>
-              <a
-                href="viber://chat?number=09189230346"
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-brand-blue px-5 py-2.5 text-xs font-semibold text-brand-white transition hover:bg-[#001a72]"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                </svg>
-                Viber
-              </a>
-            </div>
+          <div className="flex gap-3">
+            <button onClick={() => fetchBookings(password)} className="px-4 py-2 bg-white border border-gray-300 text-gray-700 font-medium rounded text-sm hover:bg-gray-50 transition">
+              Refresh Data
+            </button>
+            <button onClick={handleLogout} className="px-4 py-2 bg-red-50 border border-red-200 text-red-600 font-medium rounded text-sm hover:bg-red-100 transition">
+              Logout
+            </button>
           </div>
         </div>
-      </section>
+
+        <div className="bg-white rounded border border-gray-200 shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse min-w-[900px]">
+              <thead>
+                <tr className="bg-gray-100 text-sm uppercase tracking-wider text-gray-600 border-b border-gray-200">
+                  <th className="p-4 font-medium">Code</th>
+                  <th className="p-4 font-medium">Guest</th>
+                  <th className="p-4 font-medium">Room</th>
+                  <th className="p-4 font-medium">Dates</th>
+                  <th className="p-4 font-medium">Price</th>
+                  <th className="p-4 font-medium">Status</th>
+                  <th className="p-4 font-medium">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="text-sm divide-y divide-gray-200">
+                {bookings.length === 0 ? (
+                  <tr><td colSpan={7} className="p-8 text-center text-gray-500">No bookings found.</td></tr>
+                ) : (
+                  bookings.map((b) => (
+                    <tr key={b.id} className="hover:bg-gray-50 transition">
+                      <td className="p-4 font-mono font-medium text-gray-800">{b.confirmation_code}</td>
+                      <td className="p-4">
+                        <p className="font-medium text-gray-900">{b.guest_first_name} {b.guest_last_name}</p>
+                        <p className="text-xs text-gray-500">{b.guest_email}</p>
+                        <p className="text-xs text-gray-500">{b.guest_phone}</p>
+                      </td>
+                      <td className="p-4 text-gray-800">{getRoomName(b.room_id)}</td>
+                      <td className="p-4 text-gray-800 whitespace-nowrap">{displayDate(b.check_in)} <br/>to {displayDate(b.check_out)}</td>
+                      <td className="p-4 font-medium text-gray-900">₱{parseFloat(b.total_price).toLocaleString()}</td>
+                      <td className="p-4">
+                        <span className={`px-2 py-1 rounded text-xs font-semibold uppercase ${
+                          b.status === 'confirmed' ? 'bg-green-100 text-green-800 border border-green-200' : 
+                          b.status === 'cancelled' ? 'bg-red-100 text-red-800 border border-red-200' : 
+                          'bg-yellow-100 text-yellow-800 border border-yellow-200'
+                        }`}>
+                          {b.status}
+                        </span>
+                      </td>
+                      <td className="p-4">
+                        <div className="flex gap-2">
+                          {b.status === 'pending' && (
+                            <>
+                              <button onClick={() => updateStatus(b.id, 'confirmed')} className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded transition">Confirm</button>
+                              <button onClick={() => updateStatus(b.id, 'cancelled')} className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded transition">Cancel</button>
+                            </>
+                          )}
+                          {b.status === 'confirmed' && (
+                            <button onClick={() => updateStatus(b.id, 'cancelled')} className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs font-medium rounded transition">Cancel Booking</button>
+                          )}
+                          {b.status === 'cancelled' && (
+                            <button onClick={() => updateStatus(b.id, 'pending')} className="px-3 py-1 bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-medium rounded transition">Make Pending</button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </main>
   );
 }
