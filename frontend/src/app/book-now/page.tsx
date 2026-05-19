@@ -286,6 +286,7 @@ function BookNowContent() {
   const [viewRoomDetails, setViewRoomDetails] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [blockedDates, setBlockedDates] = useState<string[]>([]);
+  const [viewQrFullscreen, setViewQrFullscreen] = useState(false);
 
   // Calculate derived values
   const selectedRoom = mockRooms.find(r => r.id === selectedRoomId);
@@ -473,6 +474,29 @@ function BookNowContent() {
       {/* Room Details Modal */}
       {viewRoomDetails && selectedRoom && (
         <RoomDetailsModal room={selectedRoom} onClose={() => setViewRoomDetails(false)} />
+      )}
+
+      {/* GCash QR Fullscreen Modal */}
+      {viewQrFullscreen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm" onClick={() => setViewQrFullscreen(false)}>
+          <div className="bg-white rounded-[32px] p-6 max-w-sm w-full flex flex-col items-center relative shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <button onClick={() => setViewQrFullscreen(false)} className="absolute right-4 top-4 rounded-full bg-black/5 p-2 text-brand-blue hover:bg-black/10 transition">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+            <h3 className="text-xl font-semibold text-brand-blue mb-4">Scan to Pay</h3>
+            <div className="w-full aspect-[3/4] flex justify-center rounded-xl bg-slate-50 mb-6 overflow-hidden border border-brand-blue/10">
+              <img src="/img/payment/gcash.jpg" alt="GCash QR Code Full" className="w-full h-full object-contain" />
+            </div>
+            <a 
+              href="/img/payment/gcash.jpg" 
+              download="HotelAtHome_GCash_QR.jpg"
+              className="inline-flex w-full justify-center items-center gap-2 rounded-full bg-brand-blue px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#001a72] shadow-sm"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+              Download QR Code
+            </a>
+          </div>
+        </div>
       )}
 
       <div className="mx-auto max-w-7xl px-6">
@@ -742,14 +766,20 @@ function BookNowContent() {
                 {/* Payment Details Display */}
                 {paymentDetails.method === 'gcash' && (
                   <div className="rounded-2xl border border-brand-blue/10 bg-white p-6 shadow-sm flex flex-col sm:flex-row gap-6 items-center sm:items-start">
-                    <div className="w-32 h-32 flex-shrink-0 bg-slate-50 rounded-xl overflow-hidden border border-brand-blue/10 shadow-sm">
-                      <img src="/img/payment/gcash.jpg" alt="GCash QR Code" className="w-full h-full object-cover" />
+                    <div 
+                      className="w-32 h-32 flex-shrink-0 bg-slate-50 rounded-xl overflow-hidden border border-brand-blue/10 shadow-sm relative group cursor-pointer"
+                      onClick={() => setViewQrFullscreen(true)}
+                    >
+                      <img src="/img/payment/gcash.jpg" alt="GCash QR Code" className="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
+                      <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-300">
+                        <svg className="w-8 h-8 text-white drop-shadow-md" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" /></svg>
+                      </div>
                     </div>
                     <div className="space-y-2 text-center sm:text-left">
                       <h3 className="font-semibold text-brand-blue text-lg">GCash Details</h3>
                       <p className="text-brand-blue/80"><span className="font-semibold text-brand-blue">Name:</span> Hermilino Jr. Calubiran</p>
                       <p className="text-brand-blue/80"><span className="font-semibold text-brand-blue">Number:</span> +63 917 887 6444</p>
-                      <p className="text-xs text-brand-blue/60 mt-2">Please scan the QR code or send to the number provided to complete your reservation payment.</p>
+                      <p className="text-xs text-brand-blue/60 mt-2">Tap the QR code to view and download, or send to the number provided to complete your reservation payment.</p>
                     </div>
                   </div>
                 )}
