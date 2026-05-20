@@ -16,7 +16,8 @@ const allowedOrigins = [
   'https://hotelathomeph.com',
   'https://www.hotelathomeph.com',
   'http://localhost:3000',
-  'https://admin.hotelathomeph.com' // Allow admin dashboard to make requests
+  'https://admin.hotelathomeph.com', // Allow admin dashboard
+  'https://www.admin.hotelathomeph.com' // Also allow www subdomain for admin
 ];
 if (process.env.FRONTEND_URL) allowedOrigins.push(process.env.FRONTEND_URL);
 

@@ -5,11 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Hotel at Home</title>
     <style>
+        @font-face {
+            font-family: 'Edwardian Script ITC';
+            src: url('/fonts/edwardianscriptitc.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f3f6fb; color: #011478; margin: 0; padding: 20px; }
         .container { max-width: 1200px; margin: 20px auto; background: white; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #e0e7ff; overflow: hidden; }
         header { background-color: #011478; color: white; padding: 20px; }
         header h1 { margin: 0; font-size: 24px; }
-        header p { margin: 5px 0 0; color: #facc15; }
+        header p { margin: 8px 0 0; color: #facc15; font-family: 'Edwardian Script ITC', cursive; font-size: 26px; letter-spacing: 1px; }
         .content { padding: 20px; }
         table { width: 100%; border-collapse: collapse; font-size: 14px; }
         th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e0e7ff; }
@@ -73,6 +80,7 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             fetchBookings();
+            console.log("Admin API Key:", API_KEY); // Temporary debug line
         });
 
         function fetchBookings() {
@@ -118,8 +126,16 @@
             })
             .catch(error => {
                 console.error('Error fetching bookings:', error);
+                let errorMessage = 'An unexpected error occurred.';
+                if (error.message.includes('Status: 401')) {
+                    errorMessage = 'Authentication failed. The API Key is incorrect. Please verify the ADMIN_SECRET environment variable on your server.';
+                } else if (error.message.includes('Failed to fetch')) {
+                    errorMessage = 'Network Error: Cannot connect to the API. Please check if the backend is running and look for CORS errors in the browser console (F12).';
+                } else {
+                    errorMessage = `Failed to load bookings. Please check the API connection. (${error.message})`;
+                }
                 const tableBody = document.getElementById('bookings-tbody');
-                tableBody.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 40px; color: #991b1b;">Failed to load bookings. Check API connection and key.</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 40px; color: #991b1b;">${errorMessage}</td></tr>`;
             });
         }
 
