@@ -5,18 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Hotel at Home</title>
     <style>
-        @font-face {
-            font-family: 'Edwardian Script ITC';
-            src: url('/fonts/edwardianscriptitc.ttf') format('truetype');
-            font-weight: normal;
-            font-style: normal;
-            font-display: swap;
-        }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f3f6fb; color: #011478; margin: 0; padding: 20px; }
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
+        
+        body { font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f3f6fb; color: #011478; margin: 0; padding: 20px; }
         .container { max-width: 1200px; margin: 20px auto; background: white; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #e0e7ff; overflow: hidden; }
         header { background-color: #011478; color: white; padding: 20px; }
         header h1 { margin: 0; font-size: 24px; }
-        header p { margin: 8px 0 0; color: #facc15; font-family: 'Edwardian Script ITC', cursive; font-size: 26px; letter-spacing: 1px; }
+        header p { margin: 8px 0 0; color: #facc15; font-family: 'DM Sans', sans-serif; font-size: 16px; font-weight: 500; letter-spacing: 1px; }
         .content { padding: 20px; }
         table { width: 100%; border-collapse: collapse; font-size: 14px; }
         th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e0e7ff; }
