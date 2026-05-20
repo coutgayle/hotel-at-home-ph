@@ -12,8 +12,7 @@ const mockRooms = [
     features: ['50 SQM with balcony', 'Ideal for 2 guests', '1 King size bed', '1 Bathroom', '4-Seater Dining Table', 'Kitchen cabinet with sink', 'Personal Ref', 'Air conditioning and WiFi', '55" Smart TV with Bluetooth Speaker', 'Toiletries, towels, and bathrobe', 'Contemporary artwork', 'Parking space'] 
   },
   { 
-    id: 2, name: 'Blue Room', price: 4800, weekendPrice: 5300, capacity: 4, image: '/img/blue-room/blue1.jpg',
-    imagesCount: 13, folder: 'blue-room', prefix: 'blue',
+    id: 2, name: 'Blue Room', price: 4800, weekendPrice: 5300, capacity: 4, image: '/img/blue-room/blue
     features: ['50 SQM with balcony', 'Ideal for 4 guests', '2 Queen size beds', '1 Bathroom', '6-Seater Dining Table', 'Kitchen cabinet with sink', 'Personal Ref', 'Air conditioning and WiFi', '55" Smart TV with Bluetooth speaker', 'Toiletries, towels, and bathrobe', 'Contemporary artwork', 'Parking space'] 
   },
   { 
@@ -845,8 +844,9 @@ function BookNowContent() {
                   <div>
                     <h3 className="font-semibold text-brand-blue mb-2 text-base">Check-in & Check-out</h3>
                     <ul className="list-disc pl-5 space-y-1">
-                      <li>Check-in: 2:00 PM</li>
-                      <li>Check-out: 12:00 PM</li>
+                      <li>Check-in: 2:00 PM (Gold and Blue Rooms only)</li>
+                      <li>Check-out: 12:00 PM (Gold and Blue Rooms only)</li>
+                      <li>Rooftop Lounge: 12-hour booking stay depending on the available and chosen time.</li>
                       <li>Late check-out subject to availability.</li>
                     </ul>
                   </div>

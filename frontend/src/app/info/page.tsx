@@ -119,8 +119,9 @@ export default function InfoPage() {
             <div className="rounded-[28px] border border-brand-blue/10 bg-brand-white p-6">
               <h3 className="text-base font-semibold text-brand-blue">Check-in & Check-out</h3>
               <ul className="mt-4 space-y-3 text-sm text-brand-blue/70">
-                <li>Check-in: 2:00 PM</li>
-                <li>Check-out: 12:00 PM</li>
+                <li>Check-in: 2:00 PM (Gold and Blue Rooms only)</li>
+                <li>Check-out: 12:00 PM (Gold and Blue Rooms only)</li>
+                <li>Rooftop Lounge: 12-hour booking stay depending on the available and chosen time.</li>
                 <li>Late check-out subject to availability.</li>
               </ul>
             </div>

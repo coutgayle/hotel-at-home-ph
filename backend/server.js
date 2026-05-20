@@ -125,7 +125,7 @@ app.post('/api/bookings', async (req, res) => {
                 <p>A new booking has been made. Here are the details:</p>
                 <table style="width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px;">
                   <tr><td style="padding: 10px; border-bottom: 1px solid #ddd; width: 35%; color: #666;">Confirmation Code</td><td style="padding: 10px; border-bottom: 1px solid #ddd; font-weight: bold; color: #011478;">${confirmationCode}</td></tr>
-                  <tr><td style="padding: 10px; border-bottom: 1px solid #ddd; color: #666;">Room</td><td style="padding: 10px; border-bottom: 1px solid #ddd; font-weight: bold;">${roomName} (ID: ${roomId})</td></tr>
+                  <tr><td style="padding: 10px; border-bottom: 1px solid #ddd; color: #666;">Room</td><td style="padding: 10px; border-bottom: 1px solid #ddd; font-weight: bold;">${roomName}</td></tr>
                   <tr><td style="padding: 10px; border-bottom: 1px solid #ddd; color: #666;">Guest Name</td><td style="padding: 10px; border-bottom: 1px solid #ddd; font-weight: bold;">${guestFirstName} ${guestLastName}</td></tr>
                   <tr><td style="padding: 10px; border-bottom: 1px solid #ddd; color: #666;">Email</td><td style="padding: 10px; border-bottom: 1px solid #ddd; font-weight: bold;">${guestEmail}</td></tr>
                   <tr><td style="padding: 10px; border-bottom: 1px solid #ddd; color: #666;">Phone</td><td style="padding: 10px; border-bottom: 1px solid #ddd; font-weight: bold;">${guestPhone}</td></tr>
