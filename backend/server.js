@@ -15,7 +15,8 @@ app.set('trust proxy', 1);
 const allowedOrigins = [
   'https://hotelathomeph.com',
   'https://www.hotelathomeph.com',
-  'http://localhost:3000'
+  'http://localhost:3000',
+  'https://admin.hotelathomeph.com' // Allow admin dashboard to make requests
 ];
 if (process.env.FRONTEND_URL) allowedOrigins.push(process.env.FRONTEND_URL);
 
