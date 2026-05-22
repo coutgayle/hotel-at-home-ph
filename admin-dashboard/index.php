@@ -222,6 +222,7 @@ header("Pragma: no-cache");
                         <option value="confirmed">Confirmed</option>
                         <option value="cancelled">Cancelled</option>
                     </select>
+                    <button onclick="openBlockDatesModal()" class="btn-export">Block Dates</button>
                     <button onclick="fetchBookings()" class="btn-icon" title="Refresh Logs"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v6h6M21 22v-6h-6"/><path d="M22 11.5A10 10 0 0 0 3.2 7.2M2 12.5a10 10 0 0 0 18.8 4.2"/></svg></button>
                     <button onclick="openExportModal()" class="btn-icon" title="Export CSV"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 3h16a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M4 9h18M10 3v18"/></svg></button>
                 </div>
@@ -273,6 +274,34 @@ header("Pragma: no-cache");
             <div class="modal-actions">
                 <button class="btn-modal btn-modal-cancel" onclick="closeActionModal()">Cancel</button>
                 <button class="btn-modal btn-modal-submit" onclick="submitActionModal()">Send Update</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Block Dates Modal -->
+    <div id="block-dates-modal" class="modal-overlay">
+        <div class="modal-container" style="max-width: 500px;">
+            <h2 class="modal-title">Block Dates</h2>
+            <p class="modal-desc">Manually block dates for holidays or maintenance. This will appear as a confirmed "System Block" booking.</p>
+            <div style="margin-bottom: 15px;">
+                <label class="login-label">Room / Space</label>
+                <select id="block-room" class="login-input">
+                    <option value="1">Gold Room</option>
+                    <option value="2">Blue Room</option>
+                    <option value="3">Rooftop Lounge</option>
+                </select>
+            </div>
+            <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+                <div style="flex: 1;"><label class="login-label">Start Date</label><input type="date" id="block-start" class="login-input" required></div>
+                <div style="flex: 1;"><label class="login-label">End Date</label><input type="date" id="block-end" class="login-input" required></div>
+            </div>
+            <div style="margin-bottom: 24px;">
+                <label class="login-label">Reason / Note</label>
+                <input type="text" id="block-reason" class="login-input" placeholder="e.g. Unit Maintenance, Holiday">
+            </div>
+            <div class="modal-actions">
+                <button class="btn-modal btn-modal-cancel" onclick="closeBlockDatesModal()">Cancel</button>
+                <button class="btn-modal btn-modal-submit" onclick="submitBlockDates()">Block Dates</button>
             </div>
         </div>
     </div>
@@ -640,6 +669,50 @@ header("Pragma: no-cache");
             document.getElementById('action-modal').style.display = 'none';
             pendingActionBookingId = null;
             pendingActionStatus = null;
+        }
+
+        function openBlockDatesModal() {
+            document.getElementById('block-start').value = '';
+            document.getElementById('block-end').value = '';
+            document.getElementById('block-reason').value = '';
+            document.getElementById('block-dates-modal').style.display = 'flex';
+        }
+
+        function closeBlockDatesModal() {
+            document.getElementById('block-dates-modal').style.display = 'none';
+        }
+
+        function submitBlockDates() {
+            const roomId = document.getElementById('block-room').value;
+            const checkIn = document.getElementById('block-start').value;
+            const checkOut = document.getElementById('block-end').value;
+            const reason = document.getElementById('block-reason').value.trim() || 'Manual Block';
+
+            if (!checkIn || !checkOut) { showAlert('Input Required', 'Please provide both start and end dates.'); return; }
+            if (checkIn >= checkOut) { showAlert('Invalid Dates', 'End date must be after the start date.'); return; }
+
+            closeBlockDatesModal();
+            const tableBody = document.getElementById('bookings-tbody');
+            tableBody.innerHTML = '<tr><td colspan="8" id="loader">Blocking dates...</td></tr>';
+
+            fetch(`${API_BASE_URL}/admin/block-dates`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-api-key': currentApiKey },
+                body: JSON.stringify({ roomId, checkIn, checkOut, reason })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    if (response.status === 401) { signOut(); throw new Error('Session expired'); }
+                    return response.json().then(data => { throw new Error(data.error || 'Failed to block dates.'); });
+                }
+                return response.json();
+            })
+            .then(data => { if (data.success) { showAlert('Success', 'Dates have been successfully blocked.'); } fetchBookings(); })
+            .catch(error => {
+                console.error('Error blocking dates:', error);
+                if (currentApiKey) showAlert('Error', error.message || 'An error occurred while blocking dates.');
+                fetchBookings();
+            });
         }
 
         function openContactModal(bookingId) {

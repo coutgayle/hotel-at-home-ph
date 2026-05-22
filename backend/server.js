@@ -240,6 +240,47 @@ app.get('/api/admin/bookings', async (req, res) => {
   }
 });
 
+// Admin Dashboard: Block dates manually
+app.post('/api/admin/block-dates', async (req, res) => {
+  const apiKey = req.headers['x-api-key'];
+  const validPassword = process.env.ADMIN_SECRET || 'hotelathomeadmin';
+
+  if (!apiKey || apiKey !== validPassword) {
+    return res.status(401).json({ error: 'Unauthorized. Invalid admin password.' });
+  }
+
+  const { roomId, checkIn, checkOut, reason } = req.body;
+
+  try {
+    const confirmationCode = 'BLK-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+    
+    let overlapQuery = "SELECT id FROM bookings WHERE (room_id = ? OR room_id = 3) AND status != 'cancelled' AND check_in < ? AND check_out > ?";
+    let overlapParams = [roomId, checkOut, checkIn];
+
+    if (parseInt(roomId) === 3) {
+      overlapQuery = "SELECT id FROM bookings WHERE status != 'cancelled' AND check_in < ? AND check_out > ?";
+      overlapParams = [checkOut, checkIn];
+    }
+
+    const [overlaps] = await pool.query(overlapQuery, overlapParams);
+    if (overlaps.length > 0) {
+      return res.status(400).json({ error: 'These dates overlap with an existing booking or block.' });
+    }
+
+    await pool.query(
+      `INSERT INTO bookings 
+      (confirmation_code, room_id, guest_first_name, guest_last_name, guest_email, guest_phone, check_in, check_out, total_price, purpose, status) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [confirmationCode, roomId, 'System', 'Block', 'admin@hotelathomeph.com', 'N/A', checkIn, checkOut, 0, reason || 'Manual Block', 'confirmed']
+    );
+
+    res.status(201).json({ success: true, message: 'Dates blocked successfully.' });
+  } catch (error) {
+    console.error('Error blocking dates:', error);
+    res.status(500).json({ error: 'Failed to block dates.' });
+  }
+});
+
 // 6. Admin Dashboard: Update booking status
 app.patch('/api/admin/bookings/:id/status', async (req, res) => {
   const apiKey = req.headers['x-api-key'];
