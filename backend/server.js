@@ -362,6 +362,19 @@ app.get('/api/debug', (req, res) => {
 // Use absolute path to bypass Hostinger pathing issues
 const rootDir = __dirname.endsWith('backend') ? path.resolve(__dirname, '..') : process.cwd();
 const frontendOutPath = path.join(rootDir, 'frontend', 'out');
+
+// Subdomain routing for admin.hotelathomeph.com
+app.use((req, res, next) => {
+  if (req.hostname && (req.hostname === 'admin.hotelathomeph.com' || req.hostname === 'www.admin.hotelathomeph.com')) {
+    if (req.path === '/' || req.path === '/index.html') {
+      req.url = '/admin'; // Silently serve the Next.js admin page
+    } else if (!req.path.startsWith('/_next') && !req.path.startsWith('/api') && !req.path.startsWith('/img') && !req.path.startsWith('/fonts') && req.path !== '/admin') {
+      return res.redirect('https://admin.hotelathomeph.com/'); // Redirect stray visitors back to admin login
+    }
+  }
+  next();
+});
+
 app.use(express.static(frontendOutPath, { extensions: ['html'] }));
 
 // Catch-all handler for 404 Not Found (Next.js is a Multi-Page Application)
