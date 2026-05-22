@@ -16,6 +16,7 @@ const allowedOrigins = [
   'https://hotelathomeph.com',
   'https://www.hotelathomeph.com',
   'http://localhost:3000',
+  'http://localhost:3005', // Local testing via Start_Dashboard.bat
   'https://admin.hotelathomeph.com', // Allow admin dashboard
   'https://www.admin.hotelathomeph.com' // Also allow www subdomain for admin
 ];
@@ -252,7 +253,7 @@ app.post('/api/admin/block-dates', async (req, res) => {
   const { roomId, checkIn, checkOut, reason } = req.body;
 
   try {
-dates, and the a    const roomsToBlock = roomId === 'all' ? [1, 2, 3] : [parseInt(roomId)];
+    const roomsToBlock = roomId === 'all' ? [1, 2, 3] : [parseInt(roomId)];
 
     // First pass: Check for overlaps to prevent partial blocks
     for (let rId of roomsToBlock) {
