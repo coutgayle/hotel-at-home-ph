@@ -252,27 +252,35 @@ app.post('/api/admin/block-dates', async (req, res) => {
   const { roomId, checkIn, checkOut, reason } = req.body;
 
   try {
-    const confirmationCode = 'BLK-' + Math.random().toString(36).substring(2, 8).toUpperCase();
-    
-    let overlapQuery = "SELECT id FROM bookings WHERE (room_id = ? OR room_id = 3) AND status != 'cancelled' AND check_in < ? AND check_out > ?";
-    let overlapParams = [roomId, checkOut, checkIn];
+dates, and the a    const roomsToBlock = roomId === 'all' ? [1, 2, 3] : [parseInt(roomId)];
 
-    if (parseInt(roomId) === 3) {
-      overlapQuery = "SELECT id FROM bookings WHERE status != 'cancelled' AND check_in < ? AND check_out > ?";
-      overlapParams = [checkOut, checkIn];
+    // First pass: Check for overlaps to prevent partial blocks
+    for (let rId of roomsToBlock) {
+      let overlapQuery = "SELECT id FROM bookings WHERE (room_id = ? OR room_id = 3) AND status != 'cancelled' AND check_in < ? AND check_out > ?";
+      let overlapParams = [rId, checkOut, checkIn];
+
+      if (rId === 3) {
+        overlapQuery = "SELECT id FROM bookings WHERE status != 'cancelled' AND check_in < ? AND check_out > ?";
+        overlapParams = [checkOut, checkIn];
+      }
+
+      const [overlaps] = await pool.query(overlapQuery, overlapParams);
+      if (overlaps.length > 0) {
+        return res.status(400).json({ error: `These dates overlap with an existing booking or block.` });
+      }
     }
 
-    const [overlaps] = await pool.query(overlapQuery, overlapParams);
-    if (overlaps.length > 0) {
-      return res.status(400).json({ error: 'These dates overlap with an existing booking or block.' });
+    // Second pass: Insert blocks safely
+    for (let rId of roomsToBlock) {
+      const confirmationCode = 'BLK-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+      
+      await pool.query(
+        `INSERT INTO bookings 
+        (confirmation_code, room_id, guest_first_name, guest_last_name, guest_email, guest_phone, check_in, check_out, total_price, purpose, status) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [confirmationCode, rId, 'System', 'Block', 'admin@hotelathomeph.com', 'N/A', checkIn, checkOut, 0, reason || 'Manual Block', 'confirmed']
+      );
     }
-
-    await pool.query(
-      `INSERT INTO bookings 
-      (confirmation_code, room_id, guest_first_name, guest_last_name, guest_email, guest_phone, check_in, check_out, total_price, purpose, status) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [confirmationCode, roomId, 'System', 'Block', 'admin@hotelathomeph.com', 'N/A', checkIn, checkOut, 0, reason || 'Manual Block', 'confirmed']
-    );
 
     res.status(201).json({ success: true, message: 'Dates blocked successfully.' });
   } catch (error) {
