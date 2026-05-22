@@ -71,17 +71,23 @@ header("Pragma: no-cache");
         .btn-action.contact { background-color: #011478; }
         
         /* Calendar Styles */
-        .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-shrink: 0; }
         .calendar-header h2 { margin: 0; font-size: 18px; color: #011478; }
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
-        .calendar-day-header { text-align: center; font-size: 12px; font-weight: 600; color: rgba(1, 20, 120, 0.5); text-transform: uppercase; padding-bottom: 8px; }
-        .calendar-day { min-height: 80px; border: 1px solid rgba(1, 20, 120, 0.05); border-radius: 12px; padding: 8px; display: flex; flex-direction: column; gap: 4px; background: #fafbfc; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+        .calendar-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 8px; flex-shrink: 0; border-bottom: 1px solid rgba(1, 20, 120, 0.05); }
+        .calendar-day-header { text-align: center; font-size: 11px; font-weight: 600; color: rgba(1, 20, 120, 0.5); text-transform: uppercase; padding-bottom: 4px; }
+        .calendar-day { min-height: 55px; border: 1px solid rgba(1, 20, 120, 0.05); border-radius: 8px; padding: 4px; display: flex; flex-direction: column; background: #fafbfc; }
         .calendar-day.empty { background: transparent; border: none; }
-        .calendar-date { font-size: 14px; font-weight: 600; color: #011478; margin-bottom: 4px; }
+        .calendar-date { font-size: 12px; font-weight: 600; color: #011478; margin-bottom: 2px; }
+        .cal-badges-container { display: flex; flex-direction: column; gap: 2px; flex: 1; }
         .cal-badge { font-size: 10px; padding: 4px 6px; border-radius: 4px; font-weight: 600; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: left; cursor: help; }
         .cal-pending { background: #fffbeb; color: #b45309; }
         .cal-confirmed { background: #eff6ff; color: #1d4ed8; }
         .cal-block { background: #fee2e2; color: #991b1b; }
+        
+        /* Calendar Responsive Adjustments */
+        .calendar-modal-wrapper { width: 90vw !important; height: 80vh !important; max-width: none !important; max-height: none !important; display: flex; flex-direction: column; overflow: hidden !important; }
+        .calendar-modal-wrapper #calendar-grid { flex: 1; overflow-y: auto; padding-right: 4px; align-content: start; }
 
         /* Modal Styles */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(1, 20, 120, 0.4); z-index: 1000; justify-content: center; align-items: center; }
@@ -160,9 +166,12 @@ header("Pragma: no-cache");
             table { min-width: 850px; } /* Triggers horizontal swipe for the table */
             .modal-container { padding: 20px; width: 95%; max-height: 90vh; overflow-y: auto; }
             .calendar-day-header { font-size: 10px; }
-            .calendar-day { min-height: 60px; padding: 4px; }
-            .cal-badge { font-size: 8px; padding: 2px 4px; }
-            .calendar-grid { gap: 4px; }
+            .calendar-weekdays { gap: 2px; margin-bottom: 4px; }
+            .calendar-day { min-height: 50px; padding: 2px; }
+            .calendar-date { font-size: 11px; text-align: center; }
+            .cal-badges-container { flex-direction: row; flex-wrap: wrap; justify-content: center; gap: 3px; margin-top: auto; padding-top: 4px; align-content: flex-end; }
+            .cal-badge { width: 8px; height: 8px; border-radius: 50%; padding: 0; font-size: 0; color: transparent; text-indent: -9999px; }
+            .calendar-grid { gap: 2px; }
         }
     </style>
 </head>
@@ -373,16 +382,20 @@ header("Pragma: no-cache");
 
     <!-- Calendar Modal -->
     <div id="calendar-modal" class="modal-overlay">
-        <div class="modal-container" style="max-width: 700px;">
+        <div class="modal-container calendar-modal-wrapper">
             <div class="calendar-header">
                 <button onclick="changeCalendarMonth(-1)" class="btn-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
                 <h2 id="calendar-month-label">Month Year</h2>
                 <button onclick="changeCalendarMonth(1)" class="btn-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
             </div>
+            <div class="calendar-weekdays">
+                <div class="calendar-day-header">Sun</div><div class="calendar-day-header">Mon</div><div class="calendar-day-header">Tue</div>
+                <div class="calendar-day-header">Wed</div><div class="calendar-day-header">Thu</div><div class="calendar-day-header">Fri</div><div class="calendar-day-header">Sat</div>
+            </div>
             <div class="calendar-grid" id="calendar-grid">
                 <!-- Generated by JS -->
             </div>
-            <div style="margin-top: 16px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;">
+            <div style="margin-top: 16px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; flex-shrink: 0;">
                 <div style="display: flex; flex-wrap: wrap; gap: 16px; font-size: 12px; color: rgba(1,20,120,0.7); font-weight: 500;">
                     <div style="display: flex; align-items: center; gap: 6px;"><span style="width:12px;height:12px;border-radius:3px;background:#eff6ff;"></span> Confirmed</div>
                     <div style="display: flex; align-items: center; gap: 6px;"><span style="width:12px;height:12px;border-radius:3px;background:#fffbeb;"></span> Pending</div>
@@ -996,10 +1009,7 @@ header("Pragma: no-cache");
             const firstDay = new Date(year, month, 1).getDay();
             const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-            let html = `
-                <div class="calendar-day-header">Sun</div><div class="calendar-day-header">Mon</div><div class="calendar-day-header">Tue</div>
-                <div class="calendar-day-header">Wed</div><div class="calendar-day-header">Thu</div><div class="calendar-day-header">Fri</div><div class="calendar-day-header">Sat</div>
-            `;
+            let html = '';
 
             for (let i = 0; i < firstDay; i++) { html += `<div class="calendar-day empty"></div>`; }
 
@@ -1025,7 +1035,7 @@ header("Pragma: no-cache");
                     }
                     badgesHtml += `<div class="cal-badge ${typeClass}" title="${b.guest_first_name} ${b.guest_last_name} (${b.confirmation_code})">${label}</div>`;
                 });
-                html += `<div class="calendar-day"><div class="calendar-date">${day}</div>${badgesHtml}</div>`;
+                html += `<div class="calendar-day"><div class="calendar-date">${day}</div><div class="cal-badges-container">${badgesHtml}</div></div>`;
             }
             grid.innerHTML = html;
         }

@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿'use client';
+﻿﻿'use client';
 import React, { useState, Suspense, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -297,10 +297,10 @@ function BookNowContent() {
     nights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   }
   
-  // Scroll to top when step changes
+  // Scroll to top when step changes or booking is confirmed
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [currentStep]);
+    }, [currentStep, bookingConfirmed]);
 
   // Fetch blocked dates when selected room changes
   useEffect(() => {
