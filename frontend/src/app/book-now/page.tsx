@@ -297,6 +297,11 @@ function BookNowContent() {
     nights = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   }
   
+  // Scroll to top when step changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [currentStep]);
+
   // Fetch blocked dates when selected room changes
   useEffect(() => {
     if (!selectedRoomId) {
@@ -332,7 +337,11 @@ function BookNowContent() {
         console.error('Error fetching dates:', error);
       }
     };
-    fetchBlockedDates();
+    
+    fetchBlockedDates(); // Fetch immediately on room change
+    const intervalId = setInterval(fetchBlockedDates, 1000); // Refresh every 1 second
+
+    return () => clearInterval(intervalId); // Cleanup on unmount or when room changes
   }, [selectedRoomId]);
 
   let roomTotal = null;

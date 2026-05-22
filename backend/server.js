@@ -147,16 +147,16 @@ app.post('/api/bookings', async (req, res) => {
         const mailOptionsGuest = {
           from: process.env.EMAIL_USER,
           to: guestEmail,
-          subject: `Booking Confirmation – Hotel At Home`,
+          subject: `Booking Received - Pending Confirmation`,
           html: `
             <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #eaebf0; border-radius: 8px; overflow: hidden;">
               <div style="background-color: #011478; padding: 25px; text-align: center; color: white;">
                 <h1 style="margin: 0; font-size: 26px; font-weight: normal; letter-spacing: 1px;">Hotel at Home</h1>
-                <p style="margin: 8px 0 0 0; color: #facc15; font-size: 14px; text-transform: uppercase; letter-spacing: 2px;">Booking Confirmation</p>
+                <p style="margin: 8px 0 0 0; color: #facc15; font-size: 14px; text-transform: uppercase; letter-spacing: 2px;">Booking Received</p>
               </div>
               <div style="padding: 30px;">
                 <p style="margin-top: 0; font-size: 16px;">Dear <strong>${guestFirstName}</strong>,</p>
-                <p style="line-height: 1.5;">Thank you for booking with Hotel at Home. We are pleased to confirm your reservation. Please find your booking details below:</p>
+                <p style="line-height: 1.5;">Thank you for your booking request with Hotel at Home! We have received your booking, and it is currently <strong>pending confirmation</strong>. Please find your booking details below:</p>
                 
                 <table style="width: 100%; border-collapse: collapse; margin: 25px 0; font-size: 15px;">
                   <tr><td style="padding: 12px 10px; border-bottom: 1px solid #eee; width: 40%; color: #666;">Confirmation Code</td><td style="padding: 12px 10px; border-bottom: 1px solid #eee; font-weight: bold; color: #011478;">${confirmationCode}</td></tr>
@@ -164,20 +164,19 @@ app.post('/api/bookings', async (req, res) => {
                   <tr><td style="padding: 12px 10px; border-bottom: 1px solid #eee; color: #666;">Check-in</td><td style="padding: 12px 10px; border-bottom: 1px solid #eee; font-weight: bold;">${checkIn}${parseInt(roomId) !== 3 ? ' at 2:00 PM' : ''}</td></tr>
                   <tr><td style="padding: 12px 10px; border-bottom: 1px solid #eee; color: #666;">Check-out</td><td style="padding: 12px 10px; border-bottom: 1px solid #eee; font-weight: bold;">${checkOut}${parseInt(roomId) !== 3 ? ' at 12:00 PM' : ''}</td></tr>
                   <tr><td style="padding: 12px 10px; border-bottom: 1px solid #eee; color: #666;">Number of Guests</td><td style="padding: 12px 10px; border-bottom: 1px solid #eee; font-weight: bold;">${guests || 1}</td></tr>
+                  <tr><td style="padding: 12px 10px; border-bottom: 1px solid #eee; color: #666;">Total Price</td><td style="padding: 12px 10px; border-bottom: 1px solid #eee; font-weight: bold;">₱${totalPrice}</td></tr>
                   <tr><td style="padding: 12px 10px; border-bottom: 1px solid #eee; color: #666;">Purpose/Notes</td><td style="padding: 12px 10px; border-bottom: 1px solid #eee; font-weight: bold; white-space: pre-wrap;">${purpose || 'N/A'}</td></tr>
                 </table>
 
-                <div style="text-align: center; margin: 30px 0;">
-                  <a href="${process.env.FRONTEND_URL || 'https://hotelathomeph.com'}/view-booking?code=${confirmationCode}" style="background-color: #011478; color: white; padding: 12px 25px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 14px; display: inline-block;">Check Booking Status</a>
-                </div>
+                <p style="line-height: 1.5; color: #b45309; background-color: #fffbeb; padding: 12px; border-radius: 8px;"><strong>Note:</strong> We are currently verifying your submitted proof of payment. You will receive a final confirmation email once the verification is complete.</p>
 
                 <p style="line-height: 1.5;">For a smooth stay, kindly review our <a href="https://hotelathomeph.com/info/" style="color: #011478; font-weight: bold; text-decoration: none;">House Rules</a>.</p>
-                <p style="line-height: 1.5;">A separate message with additional check-in instructions will be sent prior to your arrival date.</p>
-                <p style="line-height: 1.5;">If you have any questions, please feel free to contact us via email or Viber. We'll be happy to assist and make your stay as comfortable as possible.</p>
+                <p style="line-height: 1.5;">If you have any questions, please feel free to contact us via email or Viber. We'll be happy to assist.</p>
                 
                 <p style="margin-top: 35px; margin-bottom: 0; font-size: 16px;">We look forward to hosting you!</p>
                 <p style="margin-top: 8px; line-height: 1.5;"><strong>Hotel at Home Team</strong><br>
-                <span style="font-size: 13px; color: #666;">+63 927 858 4938 &nbsp;|&nbsp; +63 917 887 6444</span></p>
+                <span style="font-size: 13px; color: #666;">📞 +63 927 858 4938 &nbsp;|&nbsp; +63 917 887 6444<br>
+                💬 <a href="viber://chat?number=639278584938" style="color: #011478; text-decoration: none;">Chat on Viber</a> &nbsp;|&nbsp; 📧 <a href="mailto:hotelathome.ph@gmail.com" style="color: #011478; text-decoration: none;">Email Us</a></span></p>
               </div>
             </div>
           `
@@ -279,12 +278,10 @@ app.patch('/api/admin/bookings/:id/status', async (req, res) => {
                   <p style="margin-top: 0; font-size: 16px;">Dear <strong>${guest_first_name}</strong>,</p>
                   <p style="line-height: 1.5;">Great news! Your booking with reference code <strong>${confirmation_code}</strong> has been officially confirmed.</p>
                   <p style="line-height: 1.5;">We have successfully verified your payment and locked in your dates. A separate message with your check-in instructions will be sent prior to your arrival.</p>
-                  <div style="text-align: center; margin: 30px 0;">
-                    <a href="${process.env.FRONTEND_URL || 'https://hotelathomeph.com'}/view-booking?code=${confirmation_code}" style="background-color: #011478; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 14px; display: inline-block;">View Booking Status</a>
-                  </div>
                   <p style="margin-top: 35px; margin-bottom: 0; font-size: 16px;">We look forward to hosting you!</p>
                   <p style="margin-top: 8px; line-height: 1.5;"><strong>Hotel at Home Team</strong><br>
-                  <span style="font-size: 13px; color: #666;">+63 927 858 4938 &nbsp;|&nbsp; +63 917 887 6444</span></p>
+                  <span style="font-size: 13px; color: #666;">📞 +63 927 858 4938 &nbsp;|&nbsp; +63 917 887 6444<br>
+                  💬 <a href="viber://chat?number=639278584938" style="color: #011478; text-decoration: none;">Chat on Viber</a> &nbsp;|&nbsp; 📧 <a href="mailto:hotelathome.ph@gmail.com" style="color: #011478; text-decoration: none;">Email Us</a></span></p>
                 </div>
               </div>
             `;
@@ -302,7 +299,8 @@ app.patch('/api/admin/bookings/:id/status', async (req, res) => {
                   <p style="line-height: 1.5;">This could be due to issues with payment verification, unavailability of dates, or at your request. If you believe this is a mistake or would like to rebook, please contact us immediately.</p>
                   <p style="margin-top: 35px; margin-bottom: 0; font-size: 16px;">Thank you for considering us.</p>
                   <p style="margin-top: 8px; line-height: 1.5;"><strong>Hotel at Home Team</strong><br>
-                  <span style="font-size: 13px; color: #666;">+63 927 858 4938 &nbsp;|&nbsp; +63 917 887 6444</span></p>
+                  <span style="font-size: 13px; color: #666;">📞 +63 927 858 4938 &nbsp;|&nbsp; +63 917 887 6444<br>
+                  💬 <a href="viber://chat?number=639278584938" style="color: #011478; text-decoration: none;">Chat on Viber</a> &nbsp;|&nbsp; 📧 <a href="mailto:hotelathome.ph@gmail.com" style="color: #011478; text-decoration: none;">Email Us</a></span></p>
                 </div>
               </div>
             `;
